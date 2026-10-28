@@ -11,6 +11,14 @@ Esta skill edita vídeos de fala (talking head, aulas, depoimentos, Reels) rodan
 
 Quando a Layla pedir uma edição sem especificar o estilo, aplique o preset `padrao` (`--preset padrao`), copiado do Reel de referência (https://www.instagram.com/reel/Ddewmw8PGtf/): fonte Cal Sans, legenda central de 2–3 palavras com palavra-chave amarela (#F9D41A) 40% maior na 2ª linha, títulos numerados, círculos de passos, cartões, caixa de vidro com texto brilhante (`glass_badge`), número gigante (`big_number`), gráfico de pilares, inserts de b-roll (`broll`), cartão "Seguir" no final (`follow_cta`) e zoom alternado a cada corte. Medidas e incertezas em `references/padrao.md`. Se ela pedir outro estilo, ele vence.
 
+**Regra fixa: legenda e texto nunca na frente do rosto.** O `hf_project.py` detecta o rosto em cada instante (`scripts/face_track.py`, modelo YuNet em `models/`), já considerando o zoom, e move ou diminui legendas e overlays para fora dele. A faixa logo abaixo do rosto fica reservada para a legenda; overlays de topo tentam caber acima do rosto (diminuindo) antes de ir para baixo. Se aparecer `AVISO: ... não achou lugar livre do rosto`, avise a Layla e sugira tirar o zoom (`"punch_in": {"enabled": false}`) ou encurtar o texto. Desligar só se ela pedir: `"face_safe": false`.
+
+**Capa (sempre entregar junto com o vídeo):**
+```bash
+python scripts/cover.py video_cortado_ou_original.mp4 -o capa.png --title "Linha 1|*PALAVRA-CHAVE*|linha 3" [--tag "ETIQUETA"] [--time 12.5]
+```
+Escolhe o quadro mais nítido com o rosto de frente, coloca o título fora do rosto e dentro do recorte 3:4 que aparece na grade do perfil. Proponha o título a partir da frase mais forte do vídeo.
+
 **Sugira os elementos lendo a transcrição:** dinheiro/preço → `glass_badge` ou `big_number`; lista ("três coisas", "primeiro") → `steps` + `numbered_title`; enumeração de dores/itens → `cards`; comparação de números → `pillars`; último 3–4 s → `follow_cta` com `@colegioconectaararas` (confirme o @ com a Layla). Mostre o plano (tempo + elemento) antes do render final.
 
 ## Instalação neste ambiente (cada sessão nova)
