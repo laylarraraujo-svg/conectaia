@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 from build_ass import DEFAULT_THEME, SUB_PRESETS, group_words, is_emphasis
-from common import local_font, pick_font, probe, punch_schedule
+from common import local_font, pick_font, probe, punch_schedule, text_width
 
 HF_VERSION = os.environ.get("HYPERFRAMES_VERSION", "0.8.209")   # versão testada; sobrescreva se quiser
 GSAP_VERSION = "3.14.2"
@@ -112,9 +112,69 @@ def visual_size(kind, W, H):
 class Comp:
     """Acumula HTML e instruções GSAP da composição."""
 
-    def __init__(self, W, H, theme):
-        self.W, self.H, self.theme = W, H, theme
+    def __init__(self, W, H, theme, faces=None, family="Arial"):
+        self.W, self.H, self.theme, self.family = W, H, theme, family
         self.html, self.js, self.n = [], [], 0
+        self.faces = faces or []          # [(t, x0, y0, x1, y1)] em px, já com o zoom aplicado
+        self.obst = []                    # overlays já posicionados: (t0, t1, x0, y0, x1, y1)
+        v = W < H
+        self.ymin, self.ymax = (0.03 * H, 0.80 * H) if v else (0.04 * H, 0.94 * H)   # 20% de baixo = interface do Reels
+        self.m = 0.015 * H                # folga entre texto e rosto
+        self.cap_band = 0                 # altura reservada para a legenda logo abaixo do rosto (definida no build)
+
+    # ---------------- layout sem cobrir o rosto
+    def _obstacles(self, t0, t1, overlays=True, band=False):
+        fs = [b[1:] for b in self.faces if t0 - 0.15 <= b[0] <= t1 + 0.15]
+        obs = list(fs)
+        if band and self.cap_band:        # overlays não ocupam a faixa da legenda embaixo do rosto
+            obs += [(0, f[3], self.W, f[3] + self.m + self.cap_band) for f in fs]
+        if overlays:
+            obs += [o[2:] for o in self.obst if o[0] < t1 and o[1] > t0]
+        return obs
+
+    def _hits(self, y, h, x0, x1, obs):
+        m = self.m
+        return [o for o in obs if x0 < o[2] and x1 > o[0] and y < o[3] + m and y + h > o[1] - m]
+
+    def place(self, y, h, t0, t1, x0=0, x1=None, prefer="down", overlays=True, band=False, strict=False):
+        """Topo (px) mais próximo de y em que a caixa não encosta no rosto nem em outro overlay; None se não couber.
+        strict=True só aceita posições no sentido de 'prefer' (acima de y para "up", abaixo para "down")."""
+        x1 = self.W if x1 is None else x1
+        obs = self._obstacles(t0, t1, overlays, band)
+        lo, hi = self.ymin, self.ymax - h
+        if hi < lo:
+            return None
+        y = min(max(y, lo), hi)
+        if not self._hits(y, h, x0, x1, obs):
+            return y
+        cands = []
+        for o in obs:
+            cands += [o[3] + self.m + 1, o[1] - self.m - h - 1]
+        cands = [cy for cy in cands if lo <= cy <= hi and not self._hits(cy, h, x0, x1, obs)
+                 and not (strict and (cy > y if prefer == "up" else cy < y))]
+        if not cands:
+            return None
+        pen = (lambda cy: abs(cy - y) + (0 if cy >= y else 0.25 * self.H)) if prefer == "down" else \
+              (lambda cy: abs(cy - y) + (0 if cy <= y else 0.25 * self.H))
+        return min(cands, key=pen)
+
+    def fit(self, y, h, t0, t1, x0, x1, prefer="down", scales=(1, 0.85, 0.72, 0.6, 0.5, 0.42), register=True, label=""):
+        """Tenta posicionar; se não couber, diminui. Retorna (y, escala) e registra a caixa como obstáculo.
+        1ª passada: só no sentido preferido (ex.: acima do rosto), diminuindo; 2ª: qualquer lugar livre."""
+        cx = (x0 + x1) / 2
+        for strict in (True, False):
+            for k in scales:
+                hw = (x1 - x0) * k / 2
+                ny = self.place(y, h * k, t0, t1, cx - hw, cx + hw, prefer, band=True, strict=strict)
+                if ny is not None:
+                    if register:
+                        self.obst.append((t0, t1, cx - hw, ny, cx + hw, ny + h * k))
+                    return ny, k
+        print(f"AVISO: {label or 'elemento'} em {t0:.1f}s não achou lugar livre do rosto; mantido na posição original.",
+              file=sys.stderr)
+        if register:
+            self.obst.append((t0, t1, x0, y, x1, y + h))
+        return y, 1.0
 
     def uid(self, p="e"):
         self.n += 1
@@ -141,6 +201,22 @@ def build_captions(c, words, opts, theme, base_px):
     vertical = W < H
     pos_y = opts.get("pos_y", preset.get("pos_y", 0.76 if vertical else 0.88))
     groups = group_words(words, preset["max_words"], max_chars=opts.get("max_chars", preset.get("max_chars", 22 if vertical else 42)))
+    lh, ks = float(opts.get("line_height", 1.12)), float(opts.get("keyword_scale", 1.15))
+
+    def safe_center(lines, start, end):
+        """Centro vertical (fração da altura) da legenda, fora do rosto e dos overlays."""
+        if not c.faces and not c.obst:
+            return pos_y
+        hgt = sum(base_px * sc * lh for _, sc in lines)
+        wid = max(text_width(t, base_px * sc, c.family) * (1.12 if sc > 1 else 1) for t, sc in lines) + 0.04 * W
+        y = c.place(pos_y * H - hgt / 2, hgt, start, end, (W - wid) / 2, (W + wid) / 2, "down")
+        if y is None:                     # sem lugar: prefere encostar num overlay a cobrir o rosto
+            y = c.place(pos_y * H - hgt / 2, hgt, start, end, (W - wid) / 2, (W + wid) / 2, "down", overlays=False)
+        if y is None:
+            print(f"AVISO: legenda em {start:.1f}s sem lugar livre do rosto; mantida no centro.", file=sys.stderr)
+            return pos_y
+        return (y + hgt / 2) / H
+
     for gi, g in enumerate(groups):
         start = g[0]["start"]
         end = g[-1]["end"] + 0.2
@@ -155,16 +231,22 @@ def build_captions(c, words, opts, theme, base_px):
             while k > 0 and ws[k - 1][1]:
                 k -= 1
             plain, key = ws[:k], ws[k:]
+            l1, l2 = " ".join(t for t, _ in plain), " ".join(t for t, _ in key)
             if key and plain:
-                inner = f'<div class="l1">{esc(" ".join(t for t, _ in plain))}</div><div class="l2">{esc(" ".join(t for t, _ in key))}</div>'
+                inner = f'<div class="l1">{esc(l1)}</div><div class="l2">{esc(l2)}</div>'
+                lines = [(l1, 1), (l2.upper(), ks)]
             elif key:
-                inner = f'<div class="l2">{esc(" ".join(t for t, _ in key))}</div>'
+                inner = f'<div class="l2">{esc(l2)}</div>'
+                lines = [(l2.upper(), ks)]
             else:
                 inner = '<div class="l1">' + " ".join(f'<span class="k">{esc(t)}</span>' if e else esc(t) for t, e in ws) + "</div>"
-            c.clip(i, start, end - start, FULL, f'<div class="cap" style="top:{pos_y * 100:.1f}%"><div id="{i}-in" class="{cls}">{inner}</div></div>')
+                lines = [(" ".join(t for t, _ in ws), 1)]
+            py = safe_center(lines, start, end)
+            c.clip(i, start, end - start, FULL, f'<div class="cap" style="top:{py * 100:.1f}%"><div id="{i}-in" class="{cls}">{inner}</div></div>')
         else:
             spans = "".join(f'<span id="{i}-w{j}">{esc(w["word"])}</span> ' for j, w in enumerate(g))
-            c.clip(i, start, end - start, FULL, f'<div class="cap" style="top:{pos_y * 100:.1f}%"><div id="{i}-in" class="{cls}">{spans.strip()}</div></div>')
+            py = safe_center([(" ".join(w["word"] for w in g), 1.15 if style == "viral" else 1)], start, end)
+            c.clip(i, start, end - start, FULL, f'<div class="cap" style="top:{py * 100:.1f}%"><div id="{i}-in" class="{cls}">{spans.strip()}</div></div>')
             if preset.get("highlight"):
                 for j, w in enumerate(g):
                     nxt = g[j + 1]["start"] if j + 1 < len(g) else end
@@ -182,8 +264,12 @@ def build_title(c, ov, base):
     text = esc(ov["text"])
     text = re.sub(r"\*(.+?)\*", r"<em>\1</em>", text)
     size = int(0.062 * H)
+    nl = max(1, round(text_width(re.sub(r"<.+?>", "", text), size, c.family) / (0.84 * c.W) + 0.49))
+    ty, k = c.fit(y - size * 0.6, size * 1.2 * nl, ov["start"], ov["start"] + ov["duration"], 0.08 * c.W, 0.92 * c.W,
+                  "down" if pos != "top" else "up", label="title")
+    size = int(size * k)
     c.clip(i, ov["start"], ov["duration"], FULL,
-           f'<div id="{i}-t" class="ttl" style="top:{y - size * 0.6:.0f}px;font-size:{size}px">{text}</div>')
+           f'<div id="{i}-t" class="ttl" style="top:{ty:.0f}px;font-size:{size}px">{text}</div>')
     c.tween(f'tl.fromTo("#{i}-t",{{y:{int(0.03 * H)},opacity:0}},{{y:0,opacity:1,duration:.32,ease:"power3.out"}},{ov["start"]:.3f});')
     c.fade_out(f"#{i}", ov["start"] + ov["duration"])
 
@@ -193,8 +279,12 @@ def build_numbered(c, ov):
     i = c.uid("num")
     y = ov.get("y", 0.52) * H
     big, med = int(0.095 * H), int(0.062 * H)
+    wid = text_width(f'{ov["number"]} {ov["text"]}'.upper(), med, c.family) + big * 0.6
+    ty, k = c.fit(y - big * 0.62, big * 1.2, ov["start"], ov["start"] + ov["duration"], (c.W - wid) / 2, (c.W + wid) / 2,
+                  label="numbered_title")
+    big, med = int(big * k), int(med * k)
     c.clip(i, ov["start"], ov["duration"], FULL,
-           f'<div id="{i}-n" class="num" style="top:{y - big * 0.62:.0f}px;font-size:{med}px;transform-origin:50% 50%">'
+           f'<div id="{i}-n" class="num" style="top:{ty:.0f}px;font-size:{med}px;transform-origin:50% 50%">'
            f'<b style="font-size:{big}px">{esc(ov["number"])}</b><span>{esc(ov["text"])}</span></div>')
     s = ov["start"]
     c.tween(f'tl.fromTo("#{i}-n",{{scale:.7,opacity:0}},{{scale:1.08,opacity:1,duration:.18,ease:"power2.out"}},{s:.3f});'
@@ -212,6 +302,9 @@ def build_lower_third(c, ov):
     if ov.get("subtitle"):
         inner += f'<div class="s" style="font-size:{ss}px">{esc(ov["subtitle"])}</div>'
     y = int(ov.get("y", 0.58 if v else 0.70) * H)
+    lw = max(text_width(ov["title"], st, c.family), text_width(ov.get("subtitle", ""), ss, c.family)) + pad * 3.2
+    y, _ = c.fit(y, st * 1.3 + (ss * 1.3 if ov.get("subtitle") else 0) + 2 * pad, ov["start"], ov["start"] + ov["duration"],
+                 0.06 * W, 0.06 * W + lw, scales=(1,), label="lower_third")
     c.clip(i, ov["start"], ov["duration"], FULL,
            f'<div id="{i}-l" class="lt" style="left:{int(0.06 * W)}px;top:{y}px;padding:{pad}px {pad * 1.6:.0f}px">{inner}</div>')
     c.tween(f'tl.fromTo("#{i}-l",{{x:{-int(0.12 * W)},opacity:0}},{{x:0,opacity:1,duration:.35,ease:"power3.out"}},{ov["start"]:.3f});')
@@ -227,6 +320,8 @@ def build_stat(c, ov):
     W, H = c.W, c.H
     cw, ch = visual_size("stat", W, H)
     x, y = box_pos(ov.get("position", "top"), cw, ch, W, H)
+    y, _ = c.fit(y, ch, ov["start"], ov["start"] + ov["duration"], x, x + cw,
+                 "up" if y < H * 0.4 else "down", scales=(1,), label="stat")
     i = c.uid("stat")
     inner = (f'<div id="{i}-v" class="abs" style="left:0;width:100%;top:{ch * 0.10:.0f}px;text-align:center;'
              f'font-size:{ch * 0.46:.0f}px;font-weight:800;color:{c.theme["accent"]}">0</div>'
@@ -242,6 +337,8 @@ def build_bar_line(c, ov):
     kind = ov.get("kind", "bar")
     cw, ch = visual_size("chart", W, H)
     x, y = box_pos(ov.get("position", "top"), cw, ch, W, H)
+    y, _ = c.fit(y, ch, ov["start"], ov["start"] + ov["duration"], x, x + cw,
+                 "up" if y < H * 0.4 else "down", scales=(1,), label="chart")
     i = c.uid("ch")
     labels, values = ov["labels"], [float(v) for v in ov["values"]]
     n, mx, mn = len(values), max(values), min(values)
@@ -302,6 +399,8 @@ def build_steps(c, ov):
     W, H, th = c.W, c.H, c.theme
     cw, ch = visual_size("steps", W, H)
     x, y = box_pos(ov.get("position", "top"), cw, ch, W, H)
+    y, _ = c.fit(y, ch, ov["start"], ov["start"] + ov["duration"], x, x + cw,
+                 "up" if y < H * 0.4 else "down", scales=(1,), label="steps")
     i = c.uid("st")
     n, active = int(ov.get("count", 3)), int(ov.get("active", 1))
     dia = ch * 0.8
@@ -325,6 +424,8 @@ def build_cards(c, ov, assets_dir):
     W, H, th = c.W, c.H, c.theme
     cw, ch = visual_size("cards", W, H)
     x, y = box_pos(ov.get("position", "top"), cw, ch, W, H)
+    y, _ = c.fit(y, ch, ov["start"], ov["start"] + ov["duration"], x, x + cw,
+                 "up" if y < H * 0.4 else "down", scales=(1,), label="cards")
     i = c.uid("cd")
     items = ov["items"]
     n = len(items)
@@ -403,6 +504,9 @@ def build_glass_badge(c, ov):
     bw, bh = ov.get("width", 0.67) * W, ov.get("height", 0.15) * H
     x, y = (W - bw) / 2, ov.get("y", 0.10) * H
     fs = ov.get("size", 0.12) * H
+    y, k = c.fit(y, bh, ov["start"], ov["start"] + ov["duration"], x, x + bw, "up", label="glass_badge")
+    bw, bh, fs = bw * k, bh * k, fs * k
+    x = (W - bw) / 2
     inner = f'<div id="{i}-t" class="glow" style="font-size:{fs:.0f}px">{esc(ov["text"])}</div>'
     c.clip(i, ov["start"], ov["duration"], f"left:{x:.0f}px;top:{y:.0f}px;width:{bw:.0f}px;height:{bh:.0f}px;border-radius:{bh * 0.12:.0f}px", inner, "glass")
     s = ov["start"]
@@ -418,6 +522,11 @@ def build_big_number(c, ov):
     y = ov.get("y", 0.09) * H
     fs = ov.get("size", 0.085) * H
     txt = ov.get("text")
+    sample = txt or f'{ov.get("prefix", "")}{float(ov.get("value", 0)):,.{int(ov.get("decimals", 0))}f}{ov.get("suffix", "")}'
+    wid = min(W, text_width(sample, fs, c.family) * 1.05)
+    y, k = c.fit(y - fs * 0.08, fs * 1.16, ov["start"], ov["start"] + ov["duration"], (W - wid) / 2, (W + wid) / 2, "up",
+                 label="big_number")
+    y, fs = y + fs * 0.08 * k, fs * k
     inner = (f'<div id="{i}-v" class="glow abs" style="left:0;width:100%;top:{y:.0f}px;text-align:center;font-size:{fs:.0f}px">'
              f'{esc(txt) if txt else "0"}</div>')
     c.clip(i, ov["start"], ov["duration"], FULL, inner)
@@ -439,6 +548,9 @@ def build_follow_cta(c, ov, assets_dir):
     i = c.uid("cta")
     cw, ch = ov.get("width", 0.66) * W, ov.get("height", 0.062) * H
     x, y = (W - cw) / 2, ov.get("y", 0.64) * H - ch / 2
+    y, k = c.fit(y, ch, ov["start"], ov["start"] + ov["duration"], x, x + cw, label="follow_cta")
+    cw, ch = cw * k, ch * k
+    x = (W - cw) / 2
     pad = ch * 0.16
     av = ch - 2 * pad
     if ov.get("avatar"):
@@ -488,6 +600,32 @@ def build_broll(c, ov, assets_dir):
 
 
 # --------------------------------------------------------------------------- projeto
+def face_map(project, video, W, H, sched):
+    """Caixas do rosto em px no quadro final (com o zoom do punch_in, origem 50% 30%). Cacheado em faces.json."""
+    cache = Path(project) / "faces.json"
+    try:
+        if cache.exists() and cache.stat().st_mtime >= Path(video).stat().st_mtime:
+            data = json.loads(cache.read_text(encoding="utf-8"))
+        else:
+            from face_track import track
+            data = track(video)
+            cache.write_text(json.dumps(data), encoding="utf-8")
+    except Exception as e:                                     # sem OpenCV/modelo: segue sem proteção de rosto
+        print(f"AVISO: detecção de rosto indisponível ({e}); textos podem cobrir o rosto.", file=sys.stderr)
+        return []
+    out = []
+    for b in data["boxes"]:
+        if b[1] is None:
+            continue
+        t = b[0]
+        z = next((zz for a, bb, zz in sched if a <= t < bb), 1.0)
+        ox, oy = 0.5 * W, 0.3 * H
+        out.append((t, ox + (b[1] * W - ox) * z, oy + (b[2] * H - oy) * z, ox + (b[3] * W - ox) * z, oy + (b[4] * H - oy) * z))
+    found = len(out)
+    print(f"Rosto: {found}/{len(data['boxes'])} amostras com rosto; legendas e textos vão desviar dele.")
+    return out
+
+
 def ensure_gsap(project):
     """Coloca gsap.min.js dentro do projeto: o Chrome do render não precisa de internet e a saída é reprodutível."""
     dst = project / "gsap.min.js"
@@ -538,11 +676,12 @@ def build_project(project, video, words, spec, joins=None):
            .replace("@STROKE@", str(max(3, int(base_px * 0.09)))).replace("@BAR@", str(max(6, int(0.006 * H))))
            .replace("@DASH@", str(max(4, int(0.004 * H)))))
 
-    c = Comp(W, H, theme)
+    punch = spec.get("punch_in", {})
+    sched = punch_schedule(dur, joins or [], punch) if punch.get("enabled") else []
+    faces = face_map(project, video, W, H, sched) if spec.get("face_safe", True) else []
+    c = Comp(W, H, theme, faces, family)
     if sub.get("enabled", True) and words:
-        quiet = [(o["start"], o["start"] + o["duration"]) for o in overlays if o.get("type") == "numbered_title"]
-        ws = [w for w in words if not any(a - 0.05 <= w["start"] < b for a, b in quiet)]
-        build_captions(c, ws, sub, theme, base_px)
+        c.cap_band = base_px * (1 + float(sub.get("keyword_scale", 1.15))) * float(sub.get("line_height", 1.12))
     for ov in overlays:
         t = ov.get("type")
         if t == "title":
@@ -569,11 +708,14 @@ def build_project(project, video, words, spec, joins=None):
             build_follow_cta(c, ov, project / "assets")
         elif t == "broll":
             build_broll(c, ov, project / "assets")
+    if sub.get("enabled", True) and words:
+        quiet = [(o["start"], o["start"] + o["duration"]) for o in overlays if o.get("type") == "numbered_title"]
+        ws = [w for w in words if not any(a - 0.05 <= w["start"] < b for a, b in quiet)]
+        build_captions(c, ws, sub, theme, base_px)
 
-    punch = spec.get("punch_in", {})
     zoom_js = ""
     if punch.get("enabled"):
-        for a, b, z in punch_schedule(dur, joins or [], punch):
+        for a, b, z in sched:
             zoom_js += f'tl.set("#a-roll",{{scale:{z:.3f},transformOrigin:"50% 30%"}},{a:.3f});'
 
     gsap_src = ensure_gsap(project)
