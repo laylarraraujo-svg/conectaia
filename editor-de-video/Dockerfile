@@ -36,4 +36,4 @@ RUN cd /tmp && npx --yes hyperframes@0.8.209 --version >/dev/null 2>&1 || true
 VOLUME ["/dados"]
 EXPOSE 8080
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s CMD curl -fs http://127.0.0.1:8080/saude || exit 1
-ENTRYPOINT ["/usr/bin/tini", "--", "/app/iniciar.sh"]
+ENTRYPOINT ["/usr/bin/tini", "--", "sh", "/app/iniciar.sh"]
