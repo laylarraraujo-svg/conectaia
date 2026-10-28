@@ -1,0 +1,1 @@
+Fontes usadas pelo preset padrao. CalSans-Regular.ttf é a fonte das legendas e títulos.
