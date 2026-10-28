@@ -61,13 +61,16 @@ def remap_words(words, keeps):
         acc += b - a
     out = []
     for w in words:
-        mid = (w["start"] + w["end"]) / 2
-        for (a, b), off in zip(keeps, offsets):
-            if a - 1e-3 <= mid <= b + 1e-3:
-                s = max(w["start"], a) - a + off
-                e = min(w["end"], b) - a + off
-                out.append({**w, "start": round(s, 3), "end": round(max(e, s + 0.05), 3)})
-                break                         # palavra dentro de trecho cortado é descartada
+        # O Whisper às vezes estica a palavra por cima da pausa (ex.: "foi" de 14,8 a 16,0 s). Por isso a palavra vai
+        # para o trecho mantido com maior sobreposição, não para o que contém o meio dela.
+        ov = [max(0.0, min(w["end"], b) - max(w["start"], a)) for a, b in keeps]
+        k = max(range(len(keeps)), key=ov.__getitem__)
+        if ov[k] <= 0.02:
+            continue                          # palavra inteira dentro de trecho cortado é descartada
+        (a, b), off = keeps[k], offsets[k]
+        s = max(w["start"], a) - a + off
+        e = min(w["end"], b) - a + off
+        out.append({**w, "start": round(s, 3), "end": round(max(e, s + 0.05), 3)})
     return out
 
 
