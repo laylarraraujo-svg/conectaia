@@ -1,6 +1,8 @@
-# Motor de Conteúdo — engenharia reversa e plano para o Conecta
+# Motor de Conteúdo — engenharia reversa (para o Alex Tailândia)
 
-Análise do "Curso Motor de Conteúdo" (brunasantanna.com/sistema) e de como montar um sistema equivalente dentro deste workspace, adaptado ao Colégio Conecta Araras.
+Análise do "Curso Motor de Conteúdo" (brunasantanna.com/sistema) para montar um sistema equivalente para o Alex.
+
+> ⚠️ **Rascunho:** as seções 1–3 e 8 explicam o sistema da Bruna e valem para o Alex. As seções 4–7 ainda estão escritas para o Colégio Conecta e serão reescritas quando tivermos o @, o nicho e os formatos do Alex.
 
 > **Legenda:** ✅ = está escrito na página · 🔍 = dedução minha a partir do que a página mostra (a página não mostra arquivos, prompts ou código).
 
