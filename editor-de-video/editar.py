@@ -523,7 +523,8 @@ def main():
                          "start": round(end_start, 2), "duration": round(dur - end_start, 2)})
     fixos = [(o["start"], o["start"] + o["duration"]) for o in overlays if o.get("type") in ("pillars", "end_card", "chart", "stat", "cards", "numbered_title")]
     midias = listar_midias(a.midias)
-    broll = planejar_broll(midias, words, end_start if enc else dur, modelo.get("broll", {}), fixos, plano.get("broll"))
+    bcfg = {**modelo.get("broll", {}), **({"layout": plano["broll_layout"]} if plano.get("broll_layout") else {})}
+    broll = planejar_broll(midias, words, end_start if enc else dur, bcfg, fixos, plano.get("broll"))
     for item in broll:
         overlays.append(preparar_midia(item, W, H, work / "midias"))
 
@@ -545,7 +546,7 @@ def main():
     musica = escolher_musica(a.musica, modelo)
     if musica:
         print(f"Mixando trilha: {musica.name}")
-        mixar_musica(sem_musica, musica, final, modelo.get("musica") or {}, probe(sem_musica)["duration"])
+        mixar_musica(sem_musica, musica, final, {**(modelo.get("musica") or {}), **plano.get("musica", {})}, probe(sem_musica)["duration"])
     else:
         shutil.copy2(sem_musica, final)
 

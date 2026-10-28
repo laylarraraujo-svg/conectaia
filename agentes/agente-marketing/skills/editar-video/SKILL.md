@@ -4,7 +4,7 @@
 
 **Disparo:** A Layla ou a Laura envia um vídeo e pede para editar ("edita esse vídeo", "faz o Reels disso", "coloca legenda e música").
 
-**Ferramenta:** `editor-de-video/editar.py` (guia completo em `editor-de-video/LEIA-ME.md`). Rode sempre de dentro de `editor-de-video/`.
+**Ferramenta:** `editor-de-video/editar.py` (guia completo em `editor-de-video/LEIA-ME.md`). Rode sempre de dentro de `editor-de-video/`. Se a pessoa preferir editar sozinha numa página, indique o Conecta Studio (`python web/servidor.py`, depois http://localhost:8080).
 
 **Passos:**
 

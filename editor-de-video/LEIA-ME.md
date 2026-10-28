@@ -13,6 +13,35 @@ O que ele faz sozinho:
 - **capa** 1080×1920 na identidade da marca
 - **legenda do post** com gancho, texto, chamada e hashtags
 
+## Como usar (pela página: Conecta Studio)
+
+Um editor online que roda no computador ou no servidor (VPS) da escola.
+
+```bash
+pip install -r requirements.txt     # uma vez; precisa também de FFmpeg e Node.js 22+
+```
+
+```bash
+python web/servidor.py
+```
+
+Abra **http://localhost:8080**. Para a equipe acessar de outros computadores da rede, use `python web/servidor.py --publico`
+e abra `http://<ip-do-computador>:8080` (na internet, coloque atrás de um acesso com senha, como um proxy com login).
+
+Na página:
+
+1. **Arraste o vídeo** e escolha o modelo. A análise (transcrição + corte de silêncio) começa sozinha.
+2. **Texto:** clique numa palavra errada para corrigir.
+3. **Elementos:** gancho, títulos, números, gráficos, nome na tela e cartão final. Arraste os blocos amarelos na linha do tempo.
+4. **Mídias:** envie fotos e vídeos. O nome do arquivo diz quando entra; ou clique em "fixar aqui" no momento do vídeo.
+5. **Música:** envie a trilha e ajuste o volume.
+6. **Capa:** título, estilo e quadro.
+7. **Gerar rascunho**, confira no seletor "Rascunho", e depois **Gerar vídeo final**.
+8. **Legenda** e **Baixar:** edite/copie a legenda do post e baixe vídeo, capa e legenda.
+
+A prévia em cima do vídeo é aproximada; o vídeo gerado é o oficial. Um vídeo é processado por vez (os outros esperam).
+Os projetos ficam em `projetos/` (fora do git).
+
 ## Como usar (pelo chat)
 
 Fale com o Agente Marketing (ou com o orquestrador):
@@ -124,6 +153,8 @@ Um JSON com os ajustes deste vídeo. Todos os campos são opcionais. Tempos em s
 ```
 editor-de-video/
   editar.py        programa principal (vídeo + modelo -> vídeo final, capa, legenda)
+  web/             Conecta Studio: a página do editor (servidor.py + static/)
+  projetos/        projetos criados pela página (não vão para o git)
   modelos/         modelos de edição (.json)
   musicas/         trilhas livres de direitos (coloque aqui)
   entrada/         vídeos e fotos brutos (não vão para o git)

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Conecta Studio</title>
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<header class="topo">
+  <a class="marca" href="#" id="voltar-inicio"><span class="logo">C</span><span>Conecta <b>Studio</b></span></a>
+  <div class="topo-projeto" id="topo-projeto" hidden>
+    <input id="titulo-projeto" class="titulo-input" aria-label="Nome do vídeo">
+    <span class="chip" id="chip-modelo"></span>
+  </div>
+  <div class="topo-acoes" id="topo-acoes" hidden>
+    <button class="btn" id="btn-rascunho" title="Render rápido para conferir">Gerar rascunho</button>
+    <button class="btn btn-primario" id="btn-final">Gerar vídeo final</button>
+  </div>
+</header>
+
+<!-- INÍCIO: lista de vídeos + novo vídeo -->
+<main id="tela-inicio" class="inicio">
+  <section class="novo">
+    <h1>Edite um vídeo</h1>
+    <p class="sub">Envie o vídeo, escolha o modelo e receba o vídeo editado, a capa e a legenda do post.</p>
+    <label class="drop" id="drop-video">
+      <input type="file" id="input-video" accept="video/*" hidden>
+      <svg viewBox="0 0 24 24" width="40" height="40"><path d="M12 16V4m0 0l-5 5m5-5l5 5M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <strong>Arraste o vídeo aqui</strong>
+      <span>ou clique para escolher (MP4, MOV…)</span>
+    </label>
+    <h2 class="h2">Modelo</h2>
+    <div class="modelos" id="modelos-inicio"></div>
+  </section>
+  <section class="lista">
+    <h2 class="h2">Seus vídeos</h2>
+    <div class="projetos" id="lista-projetos"><p class="vazio">Nenhum vídeo ainda.</p></div>
+  </section>
+</main>
+
+<!-- EDITOR -->
+<main id="tela-editor" class="editor" hidden>
+  <nav class="trilho" id="trilho">
+    <button data-painel="modelo" class="ativo"><svg viewBox="0 0 24 24"><path d="M4 5h16v4H4zM4 11h7v8H4zM13 11h7v8h-7z"/></svg>Modelo</button>
+    <button data-painel="texto"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h10M4 18h13"/></svg>Texto</button>
+    <button data-painel="elementos"><svg viewBox="0 0 24 24"><path d="M4 19V9m6 10V5m6 14v-7m4 7H2"/></svg>Elementos</button>
+    <button data-painel="midias"><svg viewBox="0 0 24 24"><path d="M4 5h16v14H4zM4 15l4-4 4 4 3-3 5 5"/><circle cx="15.5" cy="9" r="1.5"/></svg>Mídias</button>
+    <button data-painel="musica"><svg viewBox="0 0 24 24"><path d="M9 18V6l11-2v12M9 18a3 3 0 11-6 0 3 3 0 016 0zm11-2a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Música</button>
+    <button data-painel="capa"><svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 14h6M9 17h4"/></svg>Capa</button>
+    <button data-painel="legenda"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/></svg>Legenda</button>
+    <button data-painel="exportar"><svg viewBox="0 0 24 24"><path d="M12 4v11m0 0l-4-4m4 4l4-4M4 19h16"/></svg>Baixar</button>
+  </nav>
+
+  <aside class="painel" id="painel"></aside>
+
+  <section class="palco">
+    <div class="fontes" id="fontes">
+      <button data-fonte="cortado" class="ativo">Prévia</button>
+      <button data-fonte="rascunho">Rascunho</button>
+      <button data-fonte="final">Final</button>
+    </div>
+    <div class="moldura" id="moldura">
+      <video id="player" playsinline preload="metadata"></video>
+      <div class="previa" id="previa" aria-hidden="true">
+        <div class="pv-titulo" id="pv-titulo"></div>
+        <div class="pv-elemento" id="pv-elemento"></div>
+        <div class="pv-legenda" id="pv-legenda"></div>
+        <div class="pv-fim" id="pv-fim"></div>
+      </div>
+      <div class="estado-vazio" id="estado-vazio"></div>
+    </div>
+    <div class="controles">
+      <button class="icone" id="btn-play" aria-label="Reproduzir"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></button>
+      <span class="tempo" id="tempo">0:00 / 0:00</span>
+      <span class="aviso-previa" id="aviso-previa">Prévia aproximada. O vídeo gerado é o oficial.</span>
+    </div>
+  </section>
+
+  <section class="linha" id="linha">
+    <div class="regua" id="regua"></div>
+    <div class="faixa"><span class="rotulo">Fala</span><div class="trilha" id="faixa-fala"></div></div>
+    <div class="faixa"><span class="rotulo">Na tela</span><div class="trilha" id="faixa-elementos"></div></div>
+    <div class="faixa"><span class="rotulo">Mídias</span><div class="trilha" id="faixa-midias"></div></div>
+    <div class="cabeca" id="cabeca"></div>
+  </section>
+
+  <div class="tarefa" id="tarefa" hidden>
+    <div class="tarefa-info"><strong id="tarefa-msg">Processando…</strong><span id="tarefa-pct">0%</span></div>
+    <div class="barra"><i id="tarefa-barra"></i></div>
+    <button class="btn-link" id="tarefa-cancelar">Cancelar</button>
+    <details><summary>Detalhes</summary><pre id="tarefa-log"></pre></details>
+  </div>
+</main>
+
+<div class="toast" id="toast" role="status"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>
