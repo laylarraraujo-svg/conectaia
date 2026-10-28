@@ -150,7 +150,7 @@ def build_captions(c, words, opts, theme, base_px):
         i = c.uid("cap")
         cls = "cap-in" + (" cap-viral" if style == "viral" else " cap-box" if style == "box" else "")
         if preset.get("stack"):
-            ws = [(w["word"].strip("*"), is_emphasis(w["word"], opts)) for w in g]
+            ws = [(w["word"].strip("*").rstrip(",.;:"), is_emphasis(w["word"], opts)) for w in g]   # sem vírgula/ponto, como no Reel
             k = len(ws)
             while k > 0 and ws[k - 1][1]:
                 k -= 1
