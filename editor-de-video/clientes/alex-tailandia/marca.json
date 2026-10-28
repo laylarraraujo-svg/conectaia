@@ -1,0 +1,31 @@
+{
+  "produto": "Studio",
+  "empresa": "Vereador Alex",
+  "assinatura": "VEREADOR ALEX",
+  "perfil": "@ALEXTAILANDIA",
+  "logo": "",
+  "cor": "#002776",
+  "destaque": "#FFDF00",
+  "texto": "#FFFFFF",
+  "fonte": "Montserrat",
+  "chamada_final": "Siga *@alextailandia*",
+  "cta": "Siga @alextailandia para acompanhar o trabalho na Câmara de Mogi Guaçu.",
+  "hashtags": [
+    "#MogiGuacu",
+    "#CamaraMogiGuacu",
+    "#Economia",
+    "#Ibovespa"
+  ],
+  "substituicoes": {
+    "mujiguassu": "Mogi Guaçu",
+    "mojiguaçu": "Mogi Guaçu",
+    "mojigwaçu": "Mogi Guaçu",
+    "mojibuassu": "Mogi Guaçu",
+    "patra": "pátria",
+    "nss": "INSS",
+    "recadação": "arrecadação",
+    "armadurecer": "amadurecer"
+  },
+  "voz": "Direta e firme.",
+  "aviso_publicacao": "Confira os números e as fontes antes de publicar."
+}

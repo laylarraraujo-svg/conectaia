@@ -35,14 +35,26 @@ def detect_silences(path, threshold_db=-32.0, min_silence=0.45):
     return silences, duration
 
 
-def keep_segments(silences, duration, padding=0.10, min_cut=0.15):
-    """Inverte os silêncios em trechos a manter, deixando 'padding' de respiro em cada borda da fala."""
+def keep_segments(silences, duration, padding=0.10, min_cut=0.15, protect=None):
+    """Inverte os silêncios em trechos a manter, deixando 'padding' de respiro em cada borda da fala.
+    protect: intervalos (início, fim) de palavras transcritas; nunca são cortados (o Whisper às vezes
+    marca palavras curtas dentro de pausas, e cortá-las some com a palavra da legenda)."""
     cuts = []
     for s, e in silences:
         cs = s + padding if s > 0.01 else s          # no início do vídeo não há fala para proteger
         ce = e - padding if e < duration - 0.01 else e
-        if ce - cs >= min_cut:
-            cuts.append((cs, ce))
+        pedacos = [(cs, ce)]
+        for ws, we in protect or []:
+            ws, we = ws - 0.04, we + 0.04
+            novos = []
+            for a, b in pedacos:
+                if we <= a or ws >= b:
+                    novos.append((a, b))
+                else:
+                    novos += [(a, ws)] if ws - a > 0 else []
+                    novos += [(we, b)] if b - we > 0 else []
+            pedacos = novos
+        cuts += [(a, b) for a, b in pedacos if b - a >= min_cut]
     keeps, cursor = [], 0.0
     for cs, ce in cuts:
         if cs - cursor > 0.05:
@@ -53,6 +65,11 @@ def keep_segments(silences, duration, padding=0.10, min_cut=0.15):
     return keeps or [(0.0, duration)]
 
 
+def nucleo(w):
+    """Fim 'real' da palavra: o Whisper às vezes estica a palavra por cima da pausa seguinte."""
+    return min(w["end"], w["start"] + 0.15 + 0.075 * len(w["word"]))
+
+
 def remap_words(words, keeps):
     """Converte tempos da linha do tempo original para a linha do tempo já cortada."""
     offsets, acc = [], 0.0
@@ -61,7 +78,7 @@ def remap_words(words, keeps):
         acc += b - a
     out = []
     for w in words:
-        mid = (w["start"] + w["end"]) / 2
+        mid = (w["start"] + nucleo(w)) / 2
         for (a, b), off in zip(keeps, offsets):
             if a - 1e-3 <= mid <= b + 1e-3:
                 s = max(w["start"], a) - a + off
@@ -103,7 +120,7 @@ def process(src, dst, words=None, threshold_db=-32.0, min_silence=0.45, padding=
     if not info["has_audio"]:
         raise RuntimeError("Vídeo sem áudio: não há silêncio para detectar.")
     silences, duration = detect_silences(src, threshold_db, min_silence)
-    keeps = keep_segments(silences, duration, padding)
+    keeps = keep_segments(silences, duration, padding, protect=[(w["start"], nucleo(w)) for w in words or []])
     render_cut(src, dst, keeps)
     new_dur = sum(b - a for a, b in keeps)
     joins, acc = [], 0.0                       # instantes (linha do tempo final) onde houve emenda

@@ -20,7 +20,8 @@
       "style": "viral",
       "position": "bottom",
       "max_words": 3,
-      "italic": false
+      "italic": false,
+      "max_chars": 14
     },
     "punch_in": {
       "enabled": true,

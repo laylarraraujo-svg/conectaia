@@ -441,6 +441,51 @@ def build_endcard(c, ov):
         c.tween(f'tl.fromTo("#{i}-lg",{{scale:.8,opacity:0}},{{scale:1,opacity:1,duration:.4,ease:"back.out(1.8)"}},{s + 0.1:.3f});')
 
 
+def build_recorte(c, ov, project):
+    """Recorte de jornal: manchete REAL (texto exato), veículo e data. Entra girando e o marca-texto
+    passa nas palavras entre *asteriscos*. Não imita o visual do veículo: é um cartão neutro com a fonte citada."""
+    W, H = c.W, c.H
+    i = c.uid("rc")
+    s, d = ov["start"], ov["duration"]
+    fonte_serif = Path(__file__).resolve().parent.parent / "fonts" / "Merriweather-Black.ttf"
+    if fonte_serif.exists() and not getattr(c, "_serif", False):
+        (project / "fonts").mkdir(exist_ok=True)
+        shutil.copy2(fonte_serif, project / "fonts" / fonte_serif.name)
+        c.html.append('<style>@font-face{font-family:"Merriweather";src:url("fonts/Merriweather-Black.ttf");font-weight:900}</style>')
+        c._serif = True
+    cw = W * 0.86
+    y = {"top": 0.08, "center": 0.30, "bottom": 0.50}.get(ov.get("position", "top"), 0.08) * H
+    fs = H * (0.031 if len(ov["manchete"]) > 70 else 0.036)
+    marcas, n = [], 0
+
+    def marca(m):
+        nonlocal n
+        n += 1
+        marcas.append(f"#{i}-m{n}")
+        return (f'<span id="{i}-m{n}" style="background:linear-gradient({c.theme["accent"]},{c.theme["accent"]}) no-repeat 0 85%/0% 42%;'
+                f'padding:0 .08em">{m.group(1)}</span>')
+    manchete = re.sub(r"\*(.+?)\*", marca, esc(ov["manchete"]))
+    rot = ov.get("rotacao", -2.0)
+    inner = (f'<div id="{i}-c" class="abs" style="left:{(W - cw) / 2:.0f}px;top:{y:.0f}px;width:{cw:.0f}px;background:#F7F3EA;color:#141414;'
+             f'border-radius:{H * 0.006:.0f}px;padding:{H * 0.022:.0f}px {W * 0.05:.0f}px {H * 0.018:.0f}px;'
+             f'box-shadow:0 {H * 0.012:.0f}px {H * 0.035:.0f}px rgba(0,0,0,.55);transform:rotate({rot}deg);transform-origin:50% 50%">'
+             f'<div style="display:flex;justify-content:space-between;align-items:baseline;border-bottom:{max(2, H * 0.0016):.0f}px solid #141414;'
+             f'padding-bottom:{H * 0.008:.0f}px;margin-bottom:{H * 0.014:.0f}px;font-family:Montserrat,sans-serif;font-weight:800;'
+             f'font-size:{H * 0.0145:.0f}px;letter-spacing:.06em;text-transform:uppercase">'
+             f'<span>{esc(ov.get("veiculo", ""))}</span><span style="color:#5b5b5b;font-weight:700">{esc(ov.get("data", ""))}</span></div>'
+             f'<div style="font-family:Merriweather,Georgia,serif;font-weight:900;font-size:{fs:.0f}px;line-height:1.22">{manchete}</div>'
+             + (f'<div style="font-family:Georgia,\'DejaVu Serif\',serif;font-size:{H * 0.016:.0f}px;line-height:1.35;color:#3a3a3a;'
+                f'margin-top:{H * 0.01:.0f}px">{esc(ov["linha_fina"])}</div>' if ov.get("linha_fina") else "")
+             + f'<div style="font-family:Montserrat,sans-serif;font-size:{H * 0.011:.0f}px;color:#777;margin-top:{H * 0.012:.0f}px;'
+             f'letter-spacing:.03em">Fonte: {esc(ov.get("fonte", ov.get("veiculo", "")))}</div></div>')
+    c.clip(i, s, d, "left:0;top:0;width:100%;height:100%;z-index:9", inner)
+    c.tween(f'tl.fromTo("#{i}-c",{{x:{W * 0.7:.0f},rotation:{rot + 9},opacity:0}},{{x:0,rotation:{rot},opacity:1,duration:.5,ease:"back.out(1.4)"}},{s:.3f});'
+            f'tl.fromTo("#{i}-c",{{scale:1}},{{scale:1.035,duration:{max(d - 0.5, 0.5):.3f},ease:"none"}},{s + 0.5:.3f});')
+    for k, sel in enumerate(marcas):
+        c.tween(f'tl.to("{sel}",{{backgroundSize:"100% 42%",duration:.45,ease:"power2.out"}},{s + 0.6 + 0.4 * k:.3f});')
+    c.fade_out(f"#{i}", s + d, 0.25)
+
+
 # --------------------------------------------------------------------------- projeto
 def ensure_gsap(project):
     """Coloca gsap.min.js dentro do projeto: o Chrome do render não precisa de internet e a saída é reprodutível."""
@@ -520,6 +565,8 @@ def build_project(project, video, words, spec, joins=None):
             build_cards(c, ov, project / "assets")
         elif t == "pillars":
             build_pillars(c, ov, project / "assets")
+        elif t == "recorte":
+            build_recorte(c, ov, project)
         elif t == "end_card":
             build_endcard(c, ov)
         elif t == "broll":

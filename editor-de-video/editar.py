@@ -181,6 +181,31 @@ def cortar(video, work, words, sil):
     return out, words2, stats
 
 
+def juntar_numeros(words):
+    """O Whisper às vezes separa decimais e porcentagens ("15 ,82 %"): junta numa palavra só ("15,82%")."""
+    out = []
+    for w in words:
+        t = w["word"].strip()
+        if out and re.match(r"^[,.]?\d*\s*%?[.,!?]?$", t) and re.match(r"^[,.]\d|^%", t) and re.search(r"\d[,.]?\d*$", out[-1]["word"]):
+            out[-1] = {**out[-1], "word": out[-1]["word"] + t.replace(" ", ""), "end": w["end"]}
+        else:
+            out.append(w)
+    return out
+
+
+def limpar_fala(words):
+    """Tira repetições de gaguejo ("em em", "a A") e põe maiúscula na primeira palavra."""
+    out = []
+    for w in words:
+        if out and norm(w["word"]) and norm(w["word"]) == norm(out[-1]["word"]) and w["start"] - out[-1]["end"] < 0.8:
+            out[-1] = {**out[-1], "end": w["end"]}
+            continue
+        out.append(dict(w))
+    if out and out[0]["word"][:1].islower():
+        out[0]["word"] = out[0]["word"][0].upper() + out[0]["word"][1:]
+    return out
+
+
 def frases(words, max_gap=0.6, max_words=14):
     """Agrupa palavras em frases (para transcricao.txt e legenda automática)."""
     out, cur = [], []
@@ -546,7 +571,7 @@ def main():
     words = transcrever(prep, work, spec, a.whisper) if info["has_audio"] else []
     sil = spec.get("silence", {}) if info["has_audio"] else {"enabled": False}
     cortado, words, stats = cortar(prep, work, words, sil)
-    words = apply_replacements(words, spec.get("replacements"))
+    words = limpar_fala(juntar_numeros(apply_replacements(words, spec.get("replacements"))))
     dur = probe(cortado)["duration"]
     escrever_transcricao(saida / "transcricao.txt", words, dur)
     print(f"Silêncio removido: {stats['removed_s']}s ({stats['original_s']}s -> {stats['final_s']}s, {stats['cuts']} cortes)")
@@ -567,8 +592,18 @@ def main():
     overlays += plano.get("overlays", [])
     enc = plano.get("encerramento", modelo.get("encerramento"))
     end_start = dur
-    if enc:
+    if enc and isinstance(enc, dict) and plano.get("encerramento") is not None:
+        enc = {**(modelo.get("encerramento") or {}), **enc}
+    if enc and enc.get("depois_da_fala"):
+        # o cartão entra DEPOIS da última fala: congela o último quadro e completa com silêncio
+        extra = enc.get("duracao", 2.6)
+        estendido = work / "cortado-com-final.mp4"
+        ff("-i", cortado, "-vf", f"tpad=stop_mode=clone:stop_duration={extra}", "-af", f"apad=pad_dur={extra}",
+           "-c:v", "libx264", "-preset", "veryfast", "-crf", "17", "-g", "30", "-pix_fmt", "yuv420p", "-c:a", "aac", "-b:a", "192k", estendido)
+        cortado, end_start, dur = estendido, dur, dur + extra
+    elif enc:
         end_start = max(0.5, dur - enc.get("duracao", 2.6))
+    if enc:
         overlays.append({"type": "end_card", "text": enc.get("texto", ""), "subtext": enc.get("subtexto", ""),
                          "start": round(end_start, 2), "duration": round(dur - end_start, 2),
                          **({"logo": modelo["logo_path"]} if modelo.get("logo_path") and enc.get("logo", True) else {})})
