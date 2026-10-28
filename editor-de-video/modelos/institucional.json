@@ -1,0 +1,68 @@
+{
+  "nome": "Institucional",
+  "descricao": "Elegante e calmo: mantém pausas naturais, legenda discreta na base, sem zoom, fotos em tela cheia com transição suave, trilha mais presente. Para vídeos da escola, eventos, apresentações e comunicados.",
+  "formato": "original",
+  "edicao": {
+    "font": "Montserrat",
+    "theme": {
+      "accent": "#F9C700",
+      "text": "#FFFFFF",
+      "brand": "#224289"
+    },
+    "silence": {
+      "enabled": true,
+      "threshold_db": -34,
+      "min_silence": 0.8,
+      "padding": 0.2
+    },
+    "subtitles": {
+      "enabled": true,
+      "style": "clean",
+      "position": "bottom",
+      "italic": false
+    },
+    "punch_in": {
+      "enabled": false
+    },
+    "replacements": {
+      "conecta": "Conecta",
+      "araras": "Araras"
+    }
+  },
+  "gancho": {
+    "duracao": 3.0,
+    "posicao": "center"
+  },
+  "broll": {
+    "duracao_foto": 3.5,
+    "duracao_video": 4.5,
+    "layout": "full",
+    "evitar_inicio": 3.0,
+    "evitar_fim": 4.0,
+    "intervalo_min": 4.0
+  },
+  "musica": {
+    "volume": 0.2,
+    "ducking": true,
+    "fade_in": 1.5,
+    "fade_out": 3.0
+  },
+  "encerramento": {
+    "texto": "Colégio *Conecta* Araras",
+    "subtexto": "EXCELÊNCIA QUE CONECTA",
+    "duracao": 3.0
+  },
+  "capa": {
+    "estilo": "limpo",
+    "selo": "COLÉGIO CONECTA ARARAS"
+  },
+  "legenda": {
+    "cta": "Venha conhecer nossa estrutura e nossa proposta pedagógica. Agende uma visita.",
+    "hashtags": [
+      "#ColegioConectaAraras",
+      "#Araras",
+      "#Educacao",
+      "#Escola"
+    ]
+  }
+}

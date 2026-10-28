@@ -1,0 +1,40 @@
+{
+  "nome": "Padrão Layla (Reel de referência)",
+  "descricao": "O padrão medido do Reel de referência: amarelo #F9D41A, legenda no centro com palavra-chave na 2ª linha, zoom alternado a cada corte, sem cartão final.",
+  "formato": "9:16",
+  "edicao": {
+    "preset": "padrao",
+    "theme": {
+      "brand": "#0B0B10"
+    }
+  },
+  "gancho": {
+    "duracao": 2.5,
+    "posicao": "top"
+  },
+  "broll": {
+    "duracao_foto": 2.5,
+    "duracao_video": 3.0,
+    "layout": "full",
+    "evitar_inicio": 2.0,
+    "evitar_fim": 1.5,
+    "intervalo_min": 3.5
+  },
+  "musica": {
+    "volume": 0.12,
+    "ducking": true,
+    "fade_in": 0.5,
+    "fade_out": 2.0
+  },
+  "encerramento": null,
+  "capa": {
+    "estilo": "impacto",
+    "selo": ""
+  },
+  "legenda": {
+    "cta": "",
+    "hashtags": [
+      "#ColegioConectaAraras"
+    ]
+  }
+}

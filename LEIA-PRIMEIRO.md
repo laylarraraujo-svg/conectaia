@@ -15,6 +15,10 @@ Este workspace foi estruturado para automatizar e otimizar as operações do Col
 
 - **Agente Vendas** (Especialista em qualificação e agendamento de leads para matrículas.) — `agentes/agente-vendas/` · 4 skill(s)
 - **Agente Atendimento** (Assistente de atendimento para pais de alunos matriculados e triador de chamados.) — `agentes/agente-atendimento/` · 3 skill(s)
-- **Agente Marketing** (Estrategista e executor de conteúdo para as campanhas do Colégio Conecta Araras.) — `agentes/agente-marketing/` · 4 skill(s)
+- **Agente Marketing** (Estrategista e executor de conteúdo para as campanhas do Colégio Conecta Araras.) — `agentes/agente-marketing/` · 5 skill(s)
 - **Agente Financeiro** (Assistente de gestão financeira e controle de inadimplência.) — `agentes/agente-financeiro/` · 4 skill(s)
 - **Agente Gestão** (Assistente de gestão para acompanhamento de metas e consolidação de informações.) — `agentes/agente-gestao/` · 4 skill(s)
+
+## Ferramentas
+
+- **Editor de vídeo** (`editor-de-video/`): vídeo bruto + modelo → vídeo editado, capa e legenda do post. Veja `editor-de-video/LEIA-ME.md`.

@@ -1,0 +1,77 @@
+{
+  "nome": "Viral Dinâmico",
+  "descricao": "Ritmo acelerado: cortes secos (jump cuts), legenda grande em caixa alta com a palavra falada destacada, mais zoom, fotos em janela no topo. Bom para dicas rápidas e ganchos fortes.",
+  "formato": "9:16",
+  "edicao": {
+    "font": "Montserrat",
+    "theme": {
+      "accent": "#F9C700",
+      "text": "#FFFFFF",
+      "brand": "#224289"
+    },
+    "silence": {
+      "enabled": true,
+      "threshold_db": -32,
+      "min_silence": 0.3,
+      "padding": 0.06
+    },
+    "subtitles": {
+      "enabled": true,
+      "style": "viral",
+      "position": "bottom",
+      "max_words": 3,
+      "italic": false
+    },
+    "punch_in": {
+      "enabled": true,
+      "levels": [
+        1.0,
+        1.18,
+        1.05,
+        1.3
+      ],
+      "max_hold": 2.5,
+      "min_hold": 0.9
+    },
+    "replacements": {
+      "conecta": "Conecta",
+      "araras": "Araras"
+    }
+  },
+  "gancho": {
+    "duracao": 2.2,
+    "posicao": "top"
+  },
+  "broll": {
+    "duracao_foto": 2.0,
+    "duracao_video": 2.8,
+    "layout": "janela",
+    "evitar_inicio": 1.5,
+    "evitar_fim": 3.0,
+    "intervalo_min": 2.5
+  },
+  "musica": {
+    "volume": 0.18,
+    "ducking": true,
+    "fade_in": 0.3,
+    "fade_out": 1.5
+  },
+  "encerramento": {
+    "texto": "Acompanhe para mais *conteúdos*",
+    "subtexto": "@COLEGIOCONECTAARARAS",
+    "duracao": 2.2
+  },
+  "capa": {
+    "estilo": "impacto",
+    "selo": "COLÉGIO CONECTA ARARAS"
+  },
+  "legenda": {
+    "cta": "Salve este vídeo e compartilhe com quem também cuida do futuro de uma criança. Acompanhe o perfil para mais conteúdos.",
+    "hashtags": [
+      "#ColegioConectaAraras",
+      "#Araras",
+      "#DicasParaPais",
+      "#Educacao"
+    ]
+  }
+}

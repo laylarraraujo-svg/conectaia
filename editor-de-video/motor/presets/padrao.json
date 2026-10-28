@@ -1,0 +1,33 @@
+{
+  "font": "Clarify-md",
+  "theme": {
+    "accent": "#F9D41A",
+    "text": "#FFFFFF",
+    "card": "#0B0B10",
+    "muted": "#6B7280"
+  },
+  "silence": {
+    "enabled": true,
+    "threshold_db": -32,
+    "min_silence": 0.35,
+    "padding": 0.08
+  },
+  "subtitles": {
+    "enabled": true,
+    "style": "ref",
+    "pos_y": 0.53,
+    "bold": false,
+    "italic": false
+  },
+  "punch_in": {
+    "enabled": true,
+    "levels": [
+      1.0,
+      1.14,
+      1.0,
+      1.26
+    ],
+    "max_hold": 3.5,
+    "min_hold": 1.2
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "nome": "Depoimento",
+  "descricao": "Para pais, alunos e professores falando para a câmera: legenda em caixa escura bem legível, nome e papel da pessoa na tela (lower third), cortes leves e trilha suave.",
+  "formato": "9:16",
+  "edicao": {
+    "font": "Montserrat",
+    "theme": {
+      "accent": "#F9C700",
+      "text": "#FFFFFF",
+      "brand": "#224289"
+    },
+    "silence": {
+      "enabled": true,
+      "threshold_db": -32,
+      "min_silence": 0.6,
+      "padding": 0.12
+    },
+    "subtitles": {
+      "enabled": true,
+      "style": "box",
+      "position": "bottom",
+      "max_words": 4,
+      "italic": false
+    },
+    "punch_in": {
+      "enabled": true,
+      "levels": [
+        1.0,
+        1.08
+      ],
+      "max_hold": 5.0,
+      "min_hold": 2.0
+    },
+    "replacements": {
+      "conecta": "Conecta",
+      "araras": "Araras"
+    }
+  },
+  "gancho": {
+    "duracao": 2.6,
+    "posicao": "top"
+  },
+  "apresentacao": {
+    "inicio": 0.6,
+    "duracao": 3.5
+  },
+  "broll": {
+    "duracao_foto": 3.0,
+    "duracao_video": 3.5,
+    "layout": "full",
+    "evitar_inicio": 4.5,
+    "evitar_fim": 3.5,
+    "intervalo_min": 4.0
+  },
+  "musica": {
+    "volume": 0.12,
+    "ducking": true,
+    "fade_in": 1.0,
+    "fade_out": 2.5
+  },
+  "encerramento": {
+    "texto": "Faça parte da *família Conecta*",
+    "subtexto": "COLÉGIO CONECTA ARARAS",
+    "duracao": 2.8
+  },
+  "capa": {
+    "estilo": "faixa",
+    "selo": "DEPOIMENTO"
+  },
+  "legenda": {
+    "cta": "Parceria família-escola é o que nos move. Agende uma visita e conheça o Conecta.",
+    "hashtags": [
+      "#ColegioConectaAraras",
+      "#Araras",
+      "#Depoimento",
+      "#FamiliaConecta"
+    ]
+  }
+}
