@@ -205,7 +205,7 @@ def build_captions(c, words, opts, theme, base_px):
 
     def safe_center(lines, start, end):
         """Centro vertical (fração da altura) da legenda, fora do rosto e dos overlays."""
-        if not c.faces and not c.obst:
+        if opts.get("_fixed") or (not c.faces and not c.obst):
             return pos_y
         hgt = sum(base_px * sc * lh for _, sc in lines)
         wid = max(text_width(t, base_px * sc, c.family) * (1.12 if sc > 1 else 1) for t, sc in lines) + 0.04 * W
@@ -600,6 +600,26 @@ def build_broll(c, ov, assets_dir):
 
 
 # --------------------------------------------------------------------------- projeto
+def fixed_caption_slot(c, band, default_center):
+    """Um só lugar para a legenda no vídeo todo, fora do rosto em todos os instantes.
+    Prefere o centro padrão; se o rosto desce até lá, fica logo abaixo do ponto mais baixo do rosto;
+    se não couber, diminui a legenda (até 70%) ou vai para cima da cabeça. Retorna (centro_px, escala)."""
+    n = len(c.faces)
+    bottom = sorted(f[4] for f in c.faces)[int(0.98 * (n - 1))]   # 98º percentil: ignora detecção errada isolada
+    top = sorted(f[2] for f in c.faces)[int(0.02 * (n - 1))]
+    for k in (1, 0.9, 0.8, 0.7):
+        h = band * k
+        if default_center - h / 2 >= bottom + c.m and default_center + h / 2 <= c.ymax:
+            return default_center, k
+        if bottom + c.m + h <= c.ymax:
+            return bottom + c.m + h / 2, k
+    for k in (1, 0.85, 0.7):
+        if top - c.m - band * k >= c.ymin:
+            return top - c.m - band * k / 2, k
+    print("AVISO: o rosto ocupa quase todo o quadro; legenda fixa no limite inferior e reduzida.", file=sys.stderr)
+    return c.ymax - band * 0.35, 0.7
+
+
 def face_map(project, video, W, H, sched):
     """Caixas do rosto em px no quadro final (com o zoom do punch_in, origem 50% 30%). Cacheado em faces.json."""
     cache = Path(project) / "faces.json"
@@ -669,6 +689,20 @@ def build_project(project, video, words, spec, joins=None):
     base_px = int(sub.get("size") or (sub.get("size_ratio") or (0.052 if W < H else 0.062)) * H)
     bold = sub.get("bold", pre.get("bold", True))
     italic = sub.get("italic", pre.get("italic", False))
+
+    punch = spec.get("punch_in", {})
+    sched = punch_schedule(dur, joins or [], punch) if punch.get("enabled") else []
+    faces = face_map(project, video, W, H, sched) if spec.get("face_safe", True) else []
+    c = Comp(W, H, theme, faces, family)
+    if sub.get("enabled", True) and words and faces:
+        band = base_px * (1 + float(sub.get("keyword_scale", 1.15))) * float(sub.get("line_height", 1.12))
+        if sub.get("placement", "fixed") == "fixed":
+            center, k = fixed_caption_slot(c, band, sub.get("pos_y", pre.get("pos_y", 0.53)) * H)
+            base_px = int(base_px * k)
+            sub = {**sub, "pos_y": center / H, "_fixed": True}
+            c.obst.append((0, dur + 1, 0, center - band * k / 2, W, center + band * k / 2))   # overlays não entram aqui
+        else:
+            c.cap_band = band
     css = (CSS.replace("@W@", str(W)).replace("@H@", str(H)).replace("@FONT_STACK@", stack)
            .replace("@TEXT@", theme["text"]).replace("@ACCENT@", theme["accent"])
            .replace("@CAP_SIZE@", str(base_px)).replace("@CAP_LH@", str(sub.get("line_height", 1.12))).replace("@L2@", str(sub.get("keyword_scale", 1.15))).replace("@CAP_WEIGHT@", "700" if bold else "500").replace("@CAP_STYLE@", "italic" if italic else "normal")
@@ -676,12 +710,6 @@ def build_project(project, video, words, spec, joins=None):
            .replace("@STROKE@", str(max(3, int(base_px * 0.09)))).replace("@BAR@", str(max(6, int(0.006 * H))))
            .replace("@DASH@", str(max(4, int(0.004 * H)))))
 
-    punch = spec.get("punch_in", {})
-    sched = punch_schedule(dur, joins or [], punch) if punch.get("enabled") else []
-    faces = face_map(project, video, W, H, sched) if spec.get("face_safe", True) else []
-    c = Comp(W, H, theme, faces, family)
-    if sub.get("enabled", True) and words:
-        c.cap_band = base_px * (1 + float(sub.get("keyword_scale", 1.15))) * float(sub.get("line_height", 1.12))
     for ov in overlays:
         t = ov.get("type")
         if t == "title":
