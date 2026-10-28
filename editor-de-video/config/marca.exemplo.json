@@ -1,0 +1,17 @@
+{
+  "produto": "Conecta Studio",
+  "empresa": "Colégio Conecta Araras",
+  "assinatura": "COLÉGIO CONECTA ARARAS",
+  "perfil": "@COLEGIOCONECTAARARAS",
+  "logo": "",
+  "cor": "#224289",
+  "destaque": "#F9C700",
+  "texto": "#FFFFFF",
+  "fonte": "Montserrat",
+  "chamada_final": "Agende sua *visita*",
+  "cta": "Venha conhecer de perto nosso ambiente acolhedor e estimulante. Agende sua visita pelo link da bio.",
+  "hashtags": ["#ColegioConectaAraras", "#Araras", "#Educacao"],
+  "substituicoes": {"conecta": "Conecta", "araras": "Araras"},
+  "voz": "Premium e motivadora, sem gírias. Nunca prometa resultados nem cite valores ou descontos.",
+  "aviso_publicacao": "Publique só depois da aprovação do responsável pelo marketing."
+}

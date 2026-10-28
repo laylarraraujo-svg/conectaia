@@ -1,14 +1,14 @@
 {
-  "nome": "Conecta Reels",
-  "descricao": "Padrão da marca para Reels/TikTok: azul-marinho e amarelo do Conecta, legenda central com palavra-chave amarela, zoom a cada corte, fotos/vídeos em tela cheia, trilha baixa e cartão final.",
+  "nome": "Reels da marca",
+  "descricao": "Padrão para Reels/TikTok nas cores da marca: legenda central com palavra-chave destacada, zoom a cada corte, fotos/vídeos em tela cheia, trilha baixa e cartão final.",
   "formato": "9:16",
   "edicao": {
-    "font": "Montserrat",
+    "font": "{fonte}",
     "theme": {
-      "accent": "#F9C700",
-      "text": "#FFFFFF",
-      "brand": "#224289",
-      "card": "#224289"
+      "accent": "{destaque}",
+      "text": "{texto}",
+      "brand": "{cor}",
+      "card": "{cor}"
     },
     "silence": {
       "enabled": true,
@@ -35,10 +35,7 @@
       "max_hold": 3.5,
       "min_hold": 1.2
     },
-    "replacements": {
-      "conecta": "Conecta",
-      "araras": "Araras"
-    }
+    "replacements": "{substituicoes}"
   },
   "gancho": {
     "duracao": 2.6,
@@ -59,22 +56,16 @@
     "fade_out": 2.0
   },
   "encerramento": {
-    "texto": "Agende sua *visita*",
-    "subtexto": "COLÉGIO CONECTA ARARAS",
+    "texto": "{chamada_final}",
+    "subtexto": "{assinatura}",
     "duracao": 2.6
   },
   "capa": {
     "estilo": "faixa",
-    "selo": "COLÉGIO CONECTA ARARAS"
+    "selo": "{assinatura}"
   },
   "legenda": {
-    "cta": "Venha conhecer de perto nosso ambiente acolhedor e estimulante. Agende sua visita pelo link da bio.",
-    "hashtags": [
-      "#ColegioConectaAraras",
-      "#Araras",
-      "#EducacaoDeQualidade",
-      "#Escola",
-      "#Matriculas"
-    ]
+    "cta": "{cta}",
+    "hashtags": "{hashtags}"
   }
 }

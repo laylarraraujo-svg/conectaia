@@ -1,4 +1,6 @@
-# Editor de vídeo — Colégio Conecta Araras
+# Studio — editor de vídeo automático (white-label)
+
+> **Para instalar num servidor para um cliente, veja [INSTALACAO.md](INSTALACAO.md).** A marca (nome, logo, cores e textos) fica em `config/marca.json`.
 
 Você manda o vídeo, escolhe o modelo, e o sistema devolve **o vídeo 100% editado, a capa e a legenda do post**.
 
@@ -13,12 +15,16 @@ O que ele faz sozinho:
 - **capa** 1080×1920 na identidade da marca
 - **legenda do post** com gancho, texto, chamada e hashtags
 
-## Como usar (pela página: Conecta Studio)
+## Como usar (pela página)
 
 Um editor online que roda no computador ou no servidor (VPS) da escola.
 
 ```bash
 pip install -r requirements.txt     # uma vez; precisa também de FFmpeg e Node.js 22+
+```
+
+```bash
+python web/acesso.py adicionar voce@empresa.com
 ```
 
 ```bash
@@ -46,7 +52,7 @@ Os projetos ficam em `projetos/` (fora do git).
 
 Fale com o Agente Marketing (ou com o orquestrador):
 
-> "Edita esse vídeo no modelo **Conecta Reels**. As fotos estão nesta pasta e usa esta música."
+> "Edita esse vídeo no modelo **Reels da marca**. As fotos estão nesta pasta e usa esta música."
 
 Envie o vídeo no chat, coloque em `editor-de-video/entrada/` ou mande o link do Google Drive. O agente segue a skill
 `agentes/agente-marketing/skills/editar-video/SKILL.md`: transcreve, mostra o texto para você conferir, monta o plano
@@ -57,11 +63,11 @@ Envie o vídeo no chat, coloque em `editor-de-video/entrada/` ou mande o link do
 
 | id | Para quê |
 |----|----------|
-| `conecta-reels` *(padrão)* | Reels/TikTok na identidade do Conecta: azul-marinho + amarelo, legenda central, zoom nos cortes, fotos em tela cheia, cartão "Agende sua visita" |
+| `reels` *(padrão)* | Reels/TikTok nas cores da marca, legenda central, zoom nos cortes, fotos em tela cheia, cartão "Agende sua visita" |
 | `viral-dinamico` | Dicas rápidas: cortes secos, legenda grande em caixa alta com palavra falada destacada, fotos em janela no topo |
 | `institucional` | Vídeos da escola, eventos, comunicados: pausas naturais, legenda discreta, sem zoom, trilha mais presente. Mantém o formato original (serve para horizontal) |
 | `depoimento` | Pais, alunos e professores: legenda em caixa escura, nome e papel da pessoa na tela |
-| `padrao-layla` | O padrão medido do Reel de referência (amarelo #F9D41A, fonte Clarify-md se o arquivo estiver em `motor/fonts/`) |
+| `referencia` | Estilo talking head com amarelo #F9D41A e palavra-chave na 2ª linha |
 
 Criar um modelo novo: copie um `.json` de `modelos/`, mude o nome e os valores. Os campos estão descritos abaixo.
 
@@ -76,15 +82,15 @@ python editar.py --listar-modelos
 ```
 
 ```bash
-python editar.py entrada/video.mp4 --modelo conecta-reels --preparar
+python editar.py entrada/video.mp4 --modelo reels --preparar
 ```
 
 ```bash
-python editar.py entrada/video.mp4 --modelo conecta-reels --midias entrada/fotos --musica musicas/trilha.mp3 --plano entrada/video.plano.json --rascunho
+python editar.py entrada/video.mp4 --modelo reels --midias entrada/fotos --musica musicas/trilha.mp3 --plano entrada/video.plano.json --rascunho
 ```
 
 ```bash
-python editar.py entrada/video.mp4 --modelo conecta-reels --midias entrada/fotos --musica musicas/trilha.mp3 --plano entrada/video.plano.json
+python editar.py entrada/video.mp4 --modelo reels --midias entrada/fotos --musica musicas/trilha.mp3 --plano entrada/video.plano.json
 ```
 
 1. `--preparar` transcreve e corta. Gera `saida/<video>/transcricao.txt` com o tempo de cada frase **já no vídeo editado**.
@@ -111,9 +117,9 @@ Um JSON com os ajustes deste vídeo. Todos os campos são opcionais. Tempos em s
 
 ```json
 {
-  "substituicoes": {"gente": "Agende", "conecta": "Conecta"},
-  "vocabulario": "Colégio Conecta Araras, Layla, Anne, robótica",
-  "gancho": "O que tem *dentro* do Conecta?",
+  "substituicoes": {"gente": "Agende"},
+  "vocabulario": "Nome da empresa, nomes de pessoas, termos técnicos",
+  "gancho": "3 erros que *todo mundo* comete",
   "pessoa": {"nome": "Mariana Souza", "papel": "Mãe do Pedro, 5º ano"},
   "overlays": [
     {"type": "stat", "value": 3000, "label": "livros na biblioteca", "prefix": "+", "start": 6.4, "duration": 2.8, "position": "top"},
@@ -121,7 +127,7 @@ Um JSON com os ajustes deste vídeo. Todos os campos são opcionais. Tempos em s
   ],
   "broll": [{"arquivo": "fachada.jpg", "inicio": 8.2, "duracao": 2.5, "layout": "janela"}],
   "encerramento": {"texto": "Matrículas *abertas*", "subtexto": "COLÉGIO CONECTA ARARAS", "duracao": 2.6},
-  "capa": {"titulo": "Por dentro do *Conecta*", "estilo": "faixa", "tempo": 3.4},
+  "capa": {"titulo": "Por dentro da *empresa*", "estilo": "faixa", "tempo": 3.4},
   "legenda": "Texto final do post...",
   "edicao": {"subtitles": {"style": "viral"}}
 }
@@ -153,7 +159,9 @@ Um JSON com os ajustes deste vídeo. Todos os campos são opcionais. Tempos em s
 ```
 editor-de-video/
   editar.py        programa principal (vídeo + modelo -> vídeo final, capa, legenda)
-  web/             Conecta Studio: a página do editor (servidor.py + static/)
+  web/             a página do editor (servidor.py, acesso.py = login, static/)
+  config/          marca.exemplo.json (copie para marca.json e edite: nome, logo, cores, textos)
+  Dockerfile, docker-compose.yml, Caddyfile, instalar.sh   instalação no servidor (ver INSTALACAO.md)
   projetos/        projetos criados pela página (não vão para o git)
   modelos/         modelos de edição (.json)
   musicas/         trilhas livres de direitos (coloque aqui)

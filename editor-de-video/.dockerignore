@@ -1,0 +1,10 @@
+projetos/
+saida/
+entrada/
+dados/
+config/marca.json
+config/usuarios.json
+config/.segredo
+.env
+**/__pycache__
+**/*_work

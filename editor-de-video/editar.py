@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Editor de vídeo do Colégio Conecta Araras.
+"""Editor de vídeo automático (white-label: a marca vem de config/marca.json).
 
 Entra: um vídeo + o nome de um modelo (pasta modelos/) + opcionalmente fotos/vídeos extras e uma música.
 Sai (em saida/<nome-do-video>/):
@@ -11,10 +11,10 @@ Sai (em saida/<nome-do-video>/):
 
 Uso:
   python editar.py --listar-modelos
-  python editar.py entrada/aula.mp4 --modelo conecta-reels --preparar          # 1) só transcreve e corta
-  python editar.py entrada/aula.mp4 --modelo conecta-reels --midias entrada/fotos --musica musicas/trilha.mp3 \\
+  python editar.py entrada/aula.mp4 --modelo reels --preparar          # 1) só transcreve e corta
+  python editar.py entrada/aula.mp4 --modelo reels --midias entrada/fotos --musica musicas/trilha.mp3 \\
                    --plano entrada/aula.plano.json --rascunho                  # 2) rascunho rápido (540p)
-  python editar.py entrada/aula.mp4 --modelo conecta-reels --midias entrada/fotos --musica musicas/trilha.mp3 \\
+  python editar.py entrada/aula.mp4 --modelo reels --midias entrada/fotos --musica musicas/trilha.mp3 \\
                    --plano entrada/aula.plano.json                             # 3) final
 
 O plano (opcional) é um JSON que ajusta a edição deste vídeo. Formato em LEIA-ME.md.
@@ -37,8 +37,10 @@ from common import load_json, local_font, pick_font, probe, require_ffmpeg, run,
 from cut_silence import process as cut_process  # noqa: E402
 from edit_video import PRESET_DIR, apply_replacements, deep_merge  # noqa: E402
 
+CONFIG = Path(os.environ.get("STUDIO_CONFIG", ROOT / "config"))   # marca.json, logo, modelos/ e musicas/ do cliente
 MODELOS = ROOT / "modelos"
 MUSICAS = ROOT / "musicas"
+ALIASES = {"conecta-reels": "reels", "padrao-layla": "referencia"}     # ids antigos
 IMG_EXT = {".jpg", ".jpeg", ".png", ".webp", ".bmp"}
 VID_EXT = {".mp4", ".mov", ".m4v", ".webm", ".mkv", ".avi"}
 AUD_EXT = {".mp3", ".wav", ".m4a", ".aac", ".ogg", ".flac"}
@@ -72,22 +74,62 @@ def find_browser():
             return
 
 
+def marca():
+    """Identidade do cliente: nome, cores, textos padrão e logo. Sem config/marca.json usa o exemplo."""
+    for p in (CONFIG / "marca.json", ROOT / "config" / "marca.exemplo.json"):
+        if p.exists():
+            m = load_json(p)
+            logo = m.get("logo")
+            m["logo_path"] = str(p.parent / logo) if logo and (p.parent / logo).exists() else None
+            return m
+    return {}
+
+
+def arquivos_modelos():
+    """Modelos do cliente (config/modelos) substituem os de fábrica com o mesmo id."""
+    out = {f.stem: f for f in sorted(MODELOS.glob("*.json"))}
+    out.update({f.stem: f for f in sorted((CONFIG / "modelos").glob("*.json"))} if (CONFIG / "modelos").exists() else {})
+    return out
+
+
+def aplicar_marca(obj, mc):
+    """Troca {cor}, {destaque}, {empresa}, {assinatura}, {cta}, {hashtags}... pelos valores da marca."""
+    if isinstance(obj, dict):
+        return {k: aplicar_marca(v, mc) for k, v in obj.items()}
+    if isinstance(obj, list):
+        out = []
+        for v in obj:
+            r = aplicar_marca(v, mc)
+            out += r if isinstance(v, str) and v.startswith("{") and isinstance(r, list) else [r]
+        return out
+    if isinstance(obj, str):
+        m = re.fullmatch(r"\{(\w+)\}", obj)
+        if m and m.group(1) in mc and not isinstance(mc[m.group(1)], str):
+            return mc[m.group(1)]                    # listas/dicionários (hashtags, substituicoes)
+        return re.sub(r"\{(\w+)\}", lambda x: str(mc[x.group(1)]) if isinstance(mc.get(x.group(1)), str) else x.group(0), obj)
+    return obj
+
+
 def listar_modelos():
     print("Modelos disponíveis (use --modelo <id>):\n")
-    for f in sorted(MODELOS.glob("*.json")):
-        m = load_json(f)
-        print(f"  {f.stem:<16} {m.get('nome', '')}\n  {'':<16} {m.get('descricao', '')}\n")
+    for mid, f in arquivos_modelos().items():
+        m = aplicar_marca(load_json(f), marca())
+        print(f"  {mid:<16} {m.get('nome', '')}\n  {'':<16} {m.get('descricao', '')}\n")
 
 
 def carregar_modelo(nome):
-    path = MODELOS / f"{nome}.json"
-    if not path.exists():
-        sys.exit(f"Modelo '{nome}' não existe. Opções: {', '.join(f.stem for f in MODELOS.glob('*.json'))}")
-    m = load_json(path)
+    todos = arquivos_modelos()
+    nome = nome if nome in todos else ALIASES.get(nome, nome)
+    if nome not in todos:
+        sys.exit(f"Modelo '{nome}' não existe. Opções: {', '.join(todos)}")
+    mc = marca()
+    m = aplicar_marca(load_json(todos[nome]), mc)
     spec = m.get("edicao", {})
     if spec.get("preset"):
         spec = deep_merge(load_json(PRESET_DIR / f"{spec['preset']}.json"), {k: v for k, v in spec.items() if k != "preset"})
     m["edicao"] = spec
+    m["id"] = nome
+    m["logo_path"] = mc.get("logo_path")
     return m
 
 
@@ -280,8 +322,9 @@ def escolher_musica(arg, modelo):
             return random.choice(files) if files else None
         return p if p.exists() else None
     nome = (modelo.get("musica") or {}).get("arquivo")
-    if nome and (MUSICAS / nome).exists():
-        return MUSICAS / nome
+    for pasta in (CONFIG / "musicas", MUSICAS):
+        if nome and (pasta / nome).exists():
+            return pasta / nome
     return None
 
 
@@ -433,6 +476,13 @@ def gerar_capa(quadro, out, titulo, modelo, spec):
         d.rectangle(((W - sw) / 2 - tam * 0.5, sy + tam * 0.18, (W - sw) / 2 - tam * 0.2, sy + tam * 0.26), fill=hex2(accent))
         d.rectangle(((W + sw) / 2 + tam * 0.2, sy + tam * 0.18, (W + sw) / 2 + tam * 0.5, sy + tam * 0.26), fill=hex2(accent))
         d.text(((W - sw) / 2, sy), selo, font=fs, fill=hex2(texto))
+    if modelo.get("logo_path") and cfg.get("logo", True):           # logo do cliente no topo
+        try:
+            lg = Image.open(modelo["logo_path"]).convert("RGBA")
+            lg.thumbnail((int(W * 0.30), int(H * 0.08)))
+            img.paste(lg, ((W - lg.width) // 2, int(H * 0.055)), lg)
+        except OSError:
+            pass
     img.save(out, quality=93)
     return out
 
@@ -455,7 +505,7 @@ def gerar_legenda(words, gancho, modelo):
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("video", nargs="?")
-    ap.add_argument("--modelo", default="conecta-reels", help="id do modelo (veja --listar-modelos)")
+    ap.add_argument("--modelo", default="reels", help="id do modelo (veja --listar-modelos)")
     ap.add_argument("--midias", help="pasta (ou arquivo) com fotos e vídeos para inserir")
     ap.add_argument("--musica", help="arquivo de música (ou pasta: sorteia uma). Sem isso, vai sem trilha")
     ap.add_argument("--plano", help="JSON com ajustes deste vídeo (gancho, gráficos, fotos, capa, legenda)")
@@ -520,7 +570,8 @@ def main():
     if enc:
         end_start = max(0.5, dur - enc.get("duracao", 2.6))
         overlays.append({"type": "end_card", "text": enc.get("texto", ""), "subtext": enc.get("subtexto", ""),
-                         "start": round(end_start, 2), "duration": round(dur - end_start, 2)})
+                         "start": round(end_start, 2), "duration": round(dur - end_start, 2),
+                         **({"logo": modelo["logo_path"]} if modelo.get("logo_path") and enc.get("logo", True) else {})})
     fixos = [(o["start"], o["start"] + o["duration"]) for o in overlays if o.get("type") in ("pillars", "end_card", "chart", "stat", "cards", "numbered_title")]
     midias = listar_midias(a.midias)
     bcfg = {**modelo.get("broll", {}), **({"layout": plano["broll_layout"]} if plano.get("broll_layout") else {})}

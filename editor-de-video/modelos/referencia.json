@@ -1,6 +1,6 @@
 {
-  "nome": "Padrão Layla (Reel de referência)",
-  "descricao": "O padrão medido do Reel de referência: amarelo #F9D41A, legenda no centro com palavra-chave na 2ª linha, zoom alternado a cada corte, sem cartão final.",
+  "nome": "Referência amarela",
+  "descricao": "Estilo de talking head com amarelo #F9D41A: legenda no centro com palavra-chave na 2ª linha, zoom alternado a cada corte, sem cartão final.",
   "formato": "9:16",
   "edicao": {
     "preset": "padrao",
@@ -33,8 +33,6 @@
   },
   "legenda": {
     "cta": "",
-    "hashtags": [
-      "#ColegioConectaAraras"
-    ]
+    "hashtags": "{hashtags}"
   }
 }

@@ -30,6 +30,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .titulo-input:hover, .titulo-input:focus { border-color: var(--linha); outline: none; background: var(--bg); }
 .chip { font-size: 12px; padding: 4px 10px; border-radius: 99px; background: var(--bg3); color: var(--muted); white-space: nowrap; }
 .topo-acoes { display: flex; gap: 8px; margin-left: auto; }
+.sair { margin-left: auto; font-size: 12.5px; white-space: nowrap; }
+.topo-acoes + .sair { margin-left: 4px; }
+.marca img { max-height: 32px; max-width: 120px; display: block; }
 
 .btn { border: 1px solid var(--linha); background: var(--bg3); padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; white-space: nowrap; }
 .btn:hover { border-color: var(--muted); }

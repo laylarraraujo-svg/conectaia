@@ -1,4 +1,4 @@
-/* Conecta Studio — editor de vídeo online. Fala com web/servidor.py. */
+/* Studio — editor de vídeo online (white-label). Fala com web/servidor.py. */
 const $ = (s, el = document) => el.querySelector(s);
 const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -7,7 +7,7 @@ const fmt = (t) => { t = Math.max(0, t || 0); return `${Math.floor(t / 60)}:${St
 const fmt1 = (t) => (Math.round((t || 0) * 10) / 10).toFixed(1).replace(".", ",");
 const num = (v, d = 0) => { const n = parseFloat(String(v).replace(",", ".")); return Number.isFinite(n) ? n : d; };
 
-const S = { modelos: [], modeloNovo: "conecta-reels", p: null, plano: {}, painel: "modelo", fonte: "cortado", sel: null, poll: null };
+const S = { modelos: [], modeloNovo: "reels", marca: {}, p: null, plano: {}, painel: "modelo", fonte: "cortado", sel: null, poll: null };
 const player = $("#player");
 
 // ------------------------------------------------------------------ API
@@ -16,6 +16,7 @@ async function api(metodo, url, corpo) {
   if (corpo instanceof FormData) op.body = corpo;
   else if (corpo !== undefined) { op.body = JSON.stringify(corpo); op.headers["Content-Type"] = "application/json"; }
   const r = await fetch(url, op);
+  if (r.status === 401) { location.href = "/entrar"; throw new Error("Faça login de novo."); }
   const dados = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(dados.erro || `Erro ${r.status}`);
   return dados;
@@ -25,7 +26,7 @@ function enviar(url, form, aoProgresso) {
     const x = new XMLHttpRequest();
     x.open("POST", url);
     x.upload.onprogress = (e) => e.lengthComputable && aoProgresso && aoProgresso(e.loaded / e.total);
-    x.onload = () => { let d = {}; try { d = JSON.parse(x.responseText); } catch (_) {} x.status < 300 ? ok(d) : falha(new Error(d.erro || `Erro ${x.status}`)); };
+    x.onload = () => { if (x.status === 401) { location.href = "/entrar"; return; } let d = {}; try { d = JSON.parse(x.responseText); } catch (_) {} x.status < 300 ? ok(d) : falha(new Error(d.erro || `Erro ${x.status}`)); };
     x.onerror = () => falha(new Error("Falha de conexão"));
     x.send(form);
   });
@@ -219,7 +220,7 @@ function pTexto() {
     ${trocas.length ? `<div style="margin-bottom:12px">${trocas.map(([a, b]) => `<div class="troca"><span><s>${esc(a)}</s> → <b>${esc(b)}</b></span><button class="btn-link" data-desfazer="${esc(a)}">desfazer</button></div>`).join("")}</div>` : ""}
     <div id="frases">${S.p.frases.map((f, i) => `<div class="frase" data-i="${i}"><time data-t="${f.inicio}">${fmt(f.inicio)}</time><div>${f.palavras.map((w) => `<span class="pal ${trocada(w.w) ? "trocada" : ""}" data-w="${esc(w.w)}" data-t="${w.t}">${esc(w.w)}</span>`).join(" ")}</div></div>`).join("")}</div>
     <hr class="separador"><label class="campo"><span>Nomes e termos difíceis (ajuda a transcrição na próxima análise)</span>
-    <input id="vocab" value="${esc(S.plano.vocabulario || "")}" placeholder="Ex.: Colégio Conecta Araras, Anne, robótica"></label>`;
+    <input id="vocab" value="${esc(S.plano.vocabulario || "")}" placeholder="Ex.: nome da empresa, nomes de pessoas, termos técnicos"></label>`;
 }
 const nucleo = (w) => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, "");
 const trocada = (w) => Object.values(S.plano.substituicoes || {}).some((v) => v.toLowerCase() === nucleo(w).toLowerCase());
@@ -230,7 +231,7 @@ function pElementos() {
   const tipos = { title: "Título", stat: "Número", chart: "Gráfico", lower_third: "Nome na tela" };
   return `<h3>Elementos na tela</h3><p class="dica">Títulos, números e gráficos animados. Na linha do tempo, arraste o bloco amarelo para mudar o momento. <b>Use só números reais.</b></p>
     ${precisaAnalisar()}
-    <label class="campo"><span>Gancho (título de abertura) — use *palavra* para destacar</span><input id="gancho" value="${esc(S.plano.gancho || "")}" placeholder="Ex.: O que tem *dentro* do Conecta?"></label>
+    <label class="campo"><span>Gancho (título de abertura) — use *palavra* para destacar</span><input id="gancho" value="${esc(S.plano.gancho || "")}" placeholder="Ex.: 3 erros que *todo mundo* comete"></label>
     <div class="botoes-add">
       <button class="btn btn-pequeno" data-add="title">+ Título</button><button class="btn btn-pequeno" data-add="stat">+ Número</button>
       <button class="btn btn-pequeno" data-add="chart">+ Gráfico</button><button class="btn btn-pequeno" data-add="lower_third">+ Nome na tela</button>
@@ -250,9 +251,9 @@ function pElementos() {
 function formOverlay(o) {
   const c = (k, rot, ph = "") => `<label class="campo"><span>${rot}</span><input data-k="${k}" value="${esc(Array.isArray(o[k]) ? o[k].join(", ") : o[k] ?? "")}" placeholder="${ph}"></label>`;
   if (o.type === "title") return c("text", "Texto (*palavra* destaca)");
-  if (o.type === "stat") return `<div class="linha3">${c("prefix", "Antes", "+")}${c("value", "Número")}${c("suffix", "Depois", "%")}</div>${c("label", "Descrição", "alunos atendidos")}`;
+  if (o.type === "stat") return `<div class="linha3">${c("prefix", "Antes", "+")}${c("value", "Número")}${c("suffix", "Depois", "%")}</div>${c("label", "Descrição", "clientes atendidos")}`;
   if (o.type === "chart") return `${c("title", "Título do gráfico")}${c("labels", "Rótulos (separe por vírgula)", "2024, 2025, 2026")}${c("values", "Valores (separe por vírgula)", "320, 380, 450")}<div class="linha2">${c("prefix", "Antes do valor")}${c("suffix", "Depois do valor")}</div>`;
-  if (o.type === "lower_third") return `${c("title", "Nome")}${c("subtitle", "Papel", "Mãe do Pedro, 5º ano")}`;
+  if (o.type === "lower_third") return `${c("title", "Nome")}${c("subtitle", "Papel", "Cliente desde 2022")}`;
   return "";
 }
 function pMidias() {
@@ -285,14 +286,14 @@ function pMusica() {
 function pCapa() {
   const c = S.plano.capa || {}; const est = c.estilo || modelo().capa?.estilo || "faixa";
   return `<h3>Capa</h3><p class="dica">Título curto (até 6 palavras). Use *palavra* para destacar em amarelo. A capa é refeita a cada vídeo gerado.</p>
-    <label class="campo"><span>Título da capa</span><input id="capa-titulo" value="${esc(c.titulo || "")}" placeholder="${esc(S.plano.gancho || "Ex.: Por dentro do *Conecta*")}"></label>
+    <label class="campo"><span>Título da capa</span><input id="capa-titulo" value="${esc(c.titulo || "")}" placeholder="${esc(S.plano.gancho || "Ex.: Por dentro da *empresa*")}"></label>
     <span class="campo"><span>Estilo</span></span><div class="estilos">${["faixa", "impacto", "limpo"].map((e) => `<button class="estilo ${est === e ? "ativo" : ""}" data-estilo="${e}">${e[0].toUpperCase() + e.slice(1)}</button>`).join("")}</div>
     <label class="campo"><span>Quadro do vídeo</span><div class="com-botao"><input id="capa-tempo" value="${c.tempo != null ? fmt1(c.tempo) : ""}" placeholder="automático (o mais nítido)"><button class="btn btn-pequeno" id="capa-agora">Usar quadro atual</button></div></label>
     ${S.p.arquivos.capa ? `<img class="capa-img" src="/arquivos/${S.p.id}/capa.jpg?v=${S.p.versao}" alt="Capa gerada">` : `<p class="dica">A capa aparece aqui depois de gerar o rascunho.</p>`}`;
 }
 function pLegenda() {
   const txt = S.p.legenda || S.plano.legenda || "";
-  return `<h3>Legenda do post</h3><p class="dica">Gerada automaticamente a cada vídeo. Edite aqui: sua versão fica salva e é mantida nos próximos vídeos. Voz da marca: premium e motivadora, sem gírias, sem prometer resultados nem citar valores.</p>
+  return `<h3>Legenda do post</h3><p class="dica">Gerada automaticamente a cada vídeo. Edite aqui: sua versão fica salva e é mantida nos próximos vídeos. ${S.marca.voz ? "Tom da marca: " + esc(S.marca.voz) : ""}</p>
     <label class="campo"><textarea id="legenda" rows="14" placeholder="A legenda aparece aqui depois de gerar o rascunho.">${esc(txt)}</textarea></label>
     <div class="contador" id="contador">${txt.length} / 2.200</div>
     <div class="com-botao"><button class="btn btn-primario" id="salvar-legenda">Salvar</button><button class="btn" id="copiar-legenda">Copiar</button>${S.plano.legenda ? `<button class="btn-link" id="legenda-auto" style="margin-left:auto">voltar à automática</button>` : ""}</div>`;
@@ -300,7 +301,7 @@ function pLegenda() {
 function pExportar() {
   const a = S.p.arquivos, r = S.p.resumo;
   const item = (ok, url, nome, desc) => `<a class="download ${ok ? "" : "off"}" href="${url}?baixar=1&v=${S.p.versao}"><b>${nome}</b><span>${desc}</span></a>`;
-  return `<h3>Baixar</h3><p class="dica">Gere o vídeo final para liberar os downloads. Lembre: publicar só com aprovação da Laura ou da Layla.</p>
+  return `<h3>Baixar</h3><p class="dica">Gere o vídeo final para liberar os downloads. ${esc(S.marca.aviso_publicacao || "")}</p>
     <div class="downloads">
       ${item(a.final, `/arquivos/${S.p.id}/video-final.mp4`, "Vídeo final", a.final ? "MP4 1080p" : "ainda não gerado")}
       ${item(a.capa, `/arquivos/${S.p.id}/capa.jpg`, "Capa", "JPG")}
@@ -368,7 +369,7 @@ const ligar = {
       o[k] = v; salvar();
     });
     $("#enc-on", el)?.addEventListener("change", (e) => {
-      S.plano.encerramento = e.target.checked ? { ...(modelo().encerramento || { texto: "Agende sua *visita*", subtexto: "COLÉGIO CONECTA ARARAS", duracao: 2.6 }) } : null;
+      S.plano.encerramento = e.target.checked ? { ...(modelo().encerramento || { texto: S.marca.chamada_final || "", subtexto: S.marca.assinatura || "", duracao: 2.6 }) } : null;
       salvar(); desenharPainel();
     });
     const encAtual = () => (S.plano.encerramento ||= { ...(modelo().encerramento || {}) });
@@ -591,7 +592,22 @@ document.addEventListener("keydown", (e) => {
 window.addEventListener("resize", () => { desenharLinha(); });
 
 // ------------------------------------------------------------------ partida
+function aplicarMarca(m) {
+  S.marca = m;
+  const nome = m.produto || "Studio";
+  document.title = nome;
+  $("#nome-produto").textContent = nome;
+  document.documentElement.style.setProperty("--amarelo", m.destaque || "#F9C700");
+  document.documentElement.style.setProperty("--navy", m.cor || "#224289");
+  if (m.logo) $("#logo-marca").outerHTML = '<img src="/logo" alt="">';
+  else $("#logo-marca").textContent = nome[0];
+}
+$("#btn-sair").onclick = async () => { await api("POST", "/api/sair"); location.href = "/entrar"; };
+
 (async () => {
+  aplicarMarca(await api("GET", "/api/marca"));
+  const eu = await api("GET", "/api/eu");
+  $("#btn-sair").hidden = !eu.login;
   S.modelos = await api("GET", "/api/modelos");
   const id = location.hash.slice(1);
   if (id) { try { await abrir(id); return; } catch (_) {} }

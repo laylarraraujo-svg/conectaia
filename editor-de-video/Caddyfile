@@ -1,0 +1,13 @@
+# DOMINIO no .env (ex.: studio.cliente.com.br) liga o HTTPS automático. Vazio = HTTP na porta 80 (só para teste).
+{$SITE_ADDRESS} {
+	encode gzip
+	request_body {
+		max_size 4GB
+	}
+	reverse_proxy studio:8080 {
+		transport http {
+			read_timeout 15m
+			write_timeout 15m
+		}
+	}
+}

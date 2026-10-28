@@ -4,12 +4,12 @@
 
 **Disparo:** A Layla ou a Laura envia um vídeo e pede para editar ("edita esse vídeo", "faz o Reels disso", "coloca legenda e música").
 
-**Ferramenta:** `editor-de-video/editar.py` (guia completo em `editor-de-video/LEIA-ME.md`). Rode sempre de dentro de `editor-de-video/`. Se a pessoa preferir editar sozinha numa página, indique o Conecta Studio (`python web/servidor.py`, depois http://localhost:8080).
+**Ferramenta:** `editor-de-video/editar.py` (guia completo em `editor-de-video/LEIA-ME.md`). Rode sempre de dentro de `editor-de-video/`. Se a pessoa preferir editar sozinha numa página, indique a página do editor (veja `editor-de-video/LEIA-ME.md`).
 
 **Passos:**
 
 1. **Receber os arquivos.** Vídeo enviado no chat, link do Google Drive (baixe com o conector do Drive) ou arquivo em `editor-de-video/entrada/`. Fotos/vídeos extras vão para `entrada/<nome-do-video>-midias/`. Se as fotos tiverem nomes genéricos (IMG_1234.jpg), olhe cada uma e renomeie pelo assunto (`biblioteca.jpg`, `robotica.jpg`): é assim que o sistema sabe em que momento inserir.
-2. **Escolher o modelo.** Se a pessoa não disse, pergunte mostrando as opções de `python editar.py --listar-modelos` (`conecta-reels` é o padrão). Pergunte também se há música; sem música o vídeo sai só com a voz. Nunca use música com direitos autorais que a escola não tenha licença para usar.
+2. **Escolher o modelo.** Se a pessoa não disse, pergunte mostrando as opções de `python editar.py --listar-modelos` (`reels` é o padrão). Pergunte também se há música; sem música o vídeo sai só com a voz. Nunca use música com direitos autorais que a escola não tenha licença para usar.
 3. **Preparar:** `python editar.py <video> --modelo <id> --preparar`. Leia `saida/<video>/transcricao.txt`.
 4. **Conferir a transcrição.** Mostre o texto e aponte palavras duvidosas (nomes próprios, "Conecta", termos pedagógicos). Corrija com `substituicoes` no plano. Legenda errada é o defeito mais visível.
 5. **Montar o plano** em `entrada/<video>.plano.json` (formato no LEIA-ME):

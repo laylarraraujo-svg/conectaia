@@ -3,11 +3,11 @@
   "descricao": "Ritmo acelerado: cortes secos (jump cuts), legenda grande em caixa alta com a palavra falada destacada, mais zoom, fotos em janela no topo. Bom para dicas rápidas e ganchos fortes.",
   "formato": "9:16",
   "edicao": {
-    "font": "Montserrat",
+    "font": "{fonte}",
     "theme": {
-      "accent": "#F9C700",
-      "text": "#FFFFFF",
-      "brand": "#224289"
+      "accent": "{destaque}",
+      "text": "{texto}",
+      "brand": "{cor}"
     },
     "silence": {
       "enabled": true,
@@ -33,10 +33,7 @@
       "max_hold": 2.5,
       "min_hold": 0.9
     },
-    "replacements": {
-      "conecta": "Conecta",
-      "araras": "Araras"
-    }
+    "replacements": "{substituicoes}"
   },
   "gancho": {
     "duracao": 2.2,
@@ -58,20 +55,15 @@
   },
   "encerramento": {
     "texto": "Acompanhe para mais *conteúdos*",
-    "subtexto": "@COLEGIOCONECTAARARAS",
+    "subtexto": "{perfil}",
     "duracao": 2.2
   },
   "capa": {
     "estilo": "impacto",
-    "selo": "COLÉGIO CONECTA ARARAS"
+    "selo": "{assinatura}"
   },
   "legenda": {
     "cta": "Salve este vídeo e compartilhe com quem também cuida do futuro de uma criança. Acompanhe o perfil para mais conteúdos.",
-    "hashtags": [
-      "#ColegioConectaAraras",
-      "#Araras",
-      "#DicasParaPais",
-      "#Educacao"
-    ]
+    "hashtags": "{hashtags}"
   }
 }

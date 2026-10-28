@@ -419,7 +419,13 @@ def build_endcard(c, ov):
     bg = ov.get("background", th.get("brand", "#224289"))
     big, small = int(0.052 * H if W < H else 0.075 * H), int(0.026 * H if W < H else 0.04 * H)
     text = re.sub(r"\*(.+?)\*", rf'<span style="color:{th["accent"]}">\1</span>', esc(ov.get("text", "")))
-    inner = (f'<div class="abs" style="inset:0;background:{bg};opacity:.94"></div>'
+    logo = ""
+    if ov.get("logo") and Path(ov["logo"]).exists():
+        dst = Path(c.assets_dir) / ("logo" + Path(ov["logo"]).suffix)
+        shutil.copy2(ov["logo"], dst)
+        logo = (f'<img id="{i}-lg" class="abs" src="assets/{dst.name}" style="left:{W * 0.3:.0f}px;width:{W * 0.4:.0f}px;'
+                f'top:{H * 0.40 - H * 0.16:.0f}px;height:{H * 0.12:.0f}px;object-fit:contain">')
+    inner = (f'<div class="abs" style="inset:0;background:{bg};opacity:.94"></div>{logo}'
              f'<div id="{i}-t" class="abs" style="left:8%;width:84%;top:{H * 0.40:.0f}px;text-align:center;color:{th["text"]};'
              f'font-weight:800;text-transform:uppercase;font-size:{big}px;line-height:1.1">{text}</div>'
              f'<div id="{i}-b" class="abs" style="left:{W * 0.42:.0f}px;width:{W * 0.16:.0f}px;top:{H * 0.40 + big * 2.7:.0f}px;'
@@ -431,6 +437,8 @@ def build_endcard(c, ov):
             f'tl.fromTo("#{i}-t",{{y:{int(0.03 * H)},opacity:0}},{{y:0,opacity:1,duration:.4,ease:"power3.out"}},{s + 0.15:.3f});'
             f'tl.fromTo("#{i}-b",{{scaleX:0}},{{scaleX:1,duration:.35,ease:"power2.out"}},{s + 0.35:.3f});'
             f'tl.fromTo("#{i}-s",{{opacity:0}},{{opacity:1,duration:.3}},{s + 0.5:.3f});')
+    if logo:
+        c.tween(f'tl.fromTo("#{i}-lg",{{scale:.8,opacity:0}},{{scale:1,opacity:1,duration:.4,ease:"back.out(1.8)"}},{s + 0.1:.3f});')
 
 
 # --------------------------------------------------------------------------- projeto
@@ -438,6 +446,10 @@ def ensure_gsap(project):
     """Coloca gsap.min.js dentro do projeto: o Chrome do render não precisa de internet e a saída é reprodutível."""
     dst = project / "gsap.min.js"
     if dst.exists():
+        return "gsap.min.js"
+    vendor = Path(__file__).resolve().parent.parent / "vendor" / "gsap.min.js"   # copiado na instalação (Docker)
+    if vendor.exists():
+        shutil.copy2(vendor, dst)
         return "gsap.min.js"
     if shutil.which("npm"):
         (project / "package.json").write_text('{"name":"edicao","private":true,"type":"module"}', encoding="utf-8")
@@ -485,6 +497,7 @@ def build_project(project, video, words, spec, joins=None):
            .replace("@DASH@", str(max(4, int(0.004 * H)))))
 
     c = Comp(W, H, theme)
+    c.assets_dir = project / "assets"
     if sub.get("enabled", True) and words:
         quiet = [(o["start"], o["start"] + o["duration"]) for o in overlays if o.get("type") in ("numbered_title", "end_card")]
         ws = [w for w in words if not any(a - 0.05 <= w["start"] < b for a, b in quiet)]

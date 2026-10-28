@@ -1,0 +1,36 @@
+# Sobe o Studio + Caddy (HTTPS automático). Configure o arquivo .env (veja .env.exemplo) ou rode ./instalar.sh
+services:
+  studio:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      STUDIO_HTTPS: ${STUDIO_HTTPS:-0}
+      STUDIO_ATRAS_DE_PROXY: "1"
+    volumes:
+      - ./dados:/dados
+    expose:
+      - "8080"
+    # render de vídeo usa muita CPU; ajuste ao tamanho do servidor
+    deploy:
+      resources:
+        limits:
+          memory: ${STUDIO_MEMORIA:-6g}
+
+  caddy:
+    image: caddy:2.8
+    restart: unless-stopped
+    depends_on: [studio]
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      SITE_ADDRESS: ${DOMINIO:-:80}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+volumes:
+  caddy_data:
+  caddy_config:

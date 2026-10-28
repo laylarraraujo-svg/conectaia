@@ -1,13 +1,13 @@
 {
   "nome": "Depoimento",
-  "descricao": "Para pais, alunos e professores falando para a câmera: legenda em caixa escura bem legível, nome e papel da pessoa na tela (lower third), cortes leves e trilha suave.",
+  "descricao": "Para clientes, alunos ou colaboradores falando para a câmera: legenda em caixa escura bem legível, nome e papel da pessoa na tela, cortes leves e trilha suave.",
   "formato": "9:16",
   "edicao": {
-    "font": "Montserrat",
+    "font": "{fonte}",
     "theme": {
-      "accent": "#F9C700",
-      "text": "#FFFFFF",
-      "brand": "#224289"
+      "accent": "{destaque}",
+      "text": "{texto}",
+      "brand": "{cor}"
     },
     "silence": {
       "enabled": true,
@@ -31,10 +31,7 @@
       "max_hold": 5.0,
       "min_hold": 2.0
     },
-    "replacements": {
-      "conecta": "Conecta",
-      "araras": "Araras"
-    }
+    "replacements": "{substituicoes}"
   },
   "gancho": {
     "duracao": 2.6,
@@ -59,8 +56,8 @@
     "fade_out": 2.5
   },
   "encerramento": {
-    "texto": "Faça parte da *família Conecta*",
-    "subtexto": "COLÉGIO CONECTA ARARAS",
+    "texto": "{chamada_final}",
+    "subtexto": "{assinatura}",
     "duracao": 2.8
   },
   "capa": {
@@ -68,12 +65,7 @@
     "selo": "DEPOIMENTO"
   },
   "legenda": {
-    "cta": "Parceria família-escola é o que nos move. Agende uma visita e conheça o Conecta.",
-    "hashtags": [
-      "#ColegioConectaAraras",
-      "#Araras",
-      "#Depoimento",
-      "#FamiliaConecta"
-    ]
+    "cta": "{cta}",
+    "hashtags": "{hashtags}"
   }
 }

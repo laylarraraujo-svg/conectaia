@@ -1,13 +1,17 @@
 #!/usr/bin/env python3
-"""Conecta Studio: editor de vídeo online do Colégio Conecta Araras.
+"""Studio: editor de vídeo online (white-label; nome, cores e logo vêm de config/marca.json).
 
 Página web por cima do editar.py: envia o vídeo, escolhe o modelo, revisa o texto, posiciona elementos,
 gera rascunho/final e baixa vídeo, capa e legenda.
 
 Uso:
-  pip install flask faster-whisper matplotlib pillow numpy
-  python web/servidor.py                 # abre em http://localhost:8080
-  python web/servidor.py --porta 9000 --publico   # aceita acesso de outros computadores da rede
+  pip install -r requirements.txt
+  python web/acesso.py adicionar voce@empresa.com      # cria o primeiro login
+  python web/servidor.py                               # abre em http://localhost:8080
+  python web/servidor.py --porta 9000 --publico        # aceita acesso de outros computadores
+
+Variáveis: STUDIO_CONFIG (marca, logo, usuários, modelos), STUDIO_PROJETOS (vídeos), STUDIO_HTTPS=1 (cookie seguro),
+STUDIO_SEM_LOGIN=1 (só para testes locais), STUDIO_ADMIN_EMAIL/STUDIO_ADMIN_SENHA (cria o primeiro login).
 """
 import argparse
 import json
@@ -20,18 +24,27 @@ import unicodedata
 import uuid
 from pathlib import Path
 
-from flask import Flask, abort, jsonify, request, send_from_directory
+import os
+from datetime import timedelta
+
+from flask import Flask, abort, jsonify, redirect, request, send_from_directory, session
 
 ROOT = Path(__file__).resolve().parent.parent          # editor-de-video/
-PROJ = ROOT / "projetos"
+PROJ = Path(os.environ.get("STUDIO_PROJETOS", ROOT / "projetos"))
 STATIC = Path(__file__).resolve().parent / "static"
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "motor" / "scripts"))
 
 import editar  # noqa: E402
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import acesso  # noqa: E402
 
 app = Flask(__name__, static_folder=None)
 app.config["MAX_CONTENT_LENGTH"] = 4 * 1024 ** 3        # até 4 GB por envio
+app.config.update(SECRET_KEY=acesso.segredo(), SESSION_COOKIE_HTTPONLY=True, SESSION_COOKIE_SAMESITE="Lax",
+                  SESSION_COOKIE_SECURE=os.environ.get("STUDIO_HTTPS") == "1", PERMANENT_SESSION_LIFETIME=timedelta(days=30))
+SEM_LOGIN = os.environ.get("STUDIO_SEM_LOGIN") == "1"
+LIVRES = {"/entrar", "/api/entrar", "/api/marca", "/fonte.ttf", "/logo", "/saude"}
 LOCK = threading.Lock()
 RODANDO = {}                                            # id do projeto -> Popen
 
@@ -77,7 +90,7 @@ def projeto_info(pid):
     frases = []
     duracao = None
     if corte:
-        repl = {**(editar.carregar_modelo(meta.get("modelo", "conecta-reels"))["edicao"].get("replacements") or {}),
+        repl = {**(editar.carregar_modelo(meta.get("modelo", "reels"))["edicao"].get("replacements") or {}),
                 **plano.get("substituicoes", {})}
         words = editar.apply_replacements(corte["words"], repl)
         duracao = corte["stats"]["final_s"]
@@ -119,7 +132,7 @@ def _frases_com_palavras(words):
 def executar(pid, etapa):
     p = PROJ / pid
     meta = ler(p / "projeto.json", {})
-    cmd = [sys.executable, "-u", str(ROOT / "editar.py"), str(p / meta["video"]), "--modelo", meta.get("modelo", "conecta-reels"),
+    cmd = [sys.executable, "-u", str(ROOT / "editar.py"), str(p / meta["video"]), "--modelo", meta.get("modelo", "reels"),
            "--saida", str(p / "saida"), "--plano", str(p / "plano.json")]
     if any((p / "midias").iterdir()):
         cmd += ["--midias", str(p / "midias")]
@@ -169,6 +182,78 @@ def _atualizar(p, tarefa, log_path):
     gravar(p / "tarefa.json", tarefa)
 
 
+# --------------------------------------------------------------------------- acesso
+@app.before_request
+def exigir_login():
+    if SEM_LOGIN or request.path in LIVRES or request.path.startswith("/static/") or session.get("usuario"):
+        return None
+    if request.path.startswith(("/api/", "/arquivos/")):
+        return jsonify(erro="Faça login de novo."), 401
+    return redirect("/entrar")
+
+
+@app.after_request
+def cabecalhos(r):
+    r.headers.setdefault("X-Content-Type-Options", "nosniff")
+    r.headers.setdefault("X-Frame-Options", "SAMEORIGIN")
+    r.headers.setdefault("Referrer-Policy", "same-origin")
+    return r
+
+
+@app.get("/entrar")
+def pagina_entrar():
+    return send_from_directory(STATIC, "entrar.html")
+
+
+@app.post("/api/entrar")
+def entrar():
+    d = request.get_json(force=True, silent=True) or {}
+    ip = request.remote_addr or ""          # atrás do proxy, o waitress já põe o IP real aqui
+    try:
+        ok = acesso.conferir(d.get("email"), d.get("senha"), ip)
+    except PermissionError as e:
+        return jsonify(erro=str(e)), 429
+    if not ok:
+        return jsonify(erro="E-mail ou senha incorretos." if acesso.existe_algum()
+                       else "Nenhum usuário criado ainda. Veja o LEIA-ME (web/acesso.py adicionar)."), 401
+    session.clear()
+    session.permanent = True
+    session["usuario"] = d["email"].strip().lower()
+    return jsonify(ok=True)
+
+
+@app.post("/api/sair")
+def sair():
+    session.clear()
+    return jsonify(ok=True)
+
+
+@app.get("/api/eu")
+def eu():
+    u = session.get("usuario")
+    return jsonify(email=u, nome=acesso.nome(u) if u else "", login=not SEM_LOGIN)
+
+
+@app.get("/saude")
+def saude():
+    return jsonify(ok=True)
+
+
+@app.get("/api/marca")
+def api_marca():
+    m = editar.marca()
+    campos = ("produto", "empresa", "cor", "destaque", "voz", "aviso_publicacao", "assinatura", "chamada_final")
+    return jsonify({k: m.get(k) for k in campos} | {"logo": bool(m.get("logo_path"))})
+
+
+@app.get("/logo")
+def logo():
+    lp = editar.marca().get("logo_path")
+    if not lp:
+        abort(404)
+    return send_from_directory(Path(lp).parent, Path(lp).name, max_age=300)
+
+
 # --------------------------------------------------------------------------- rotas
 @app.get("/")
 def index():
@@ -188,14 +273,15 @@ def fonte():
 @app.get("/api/modelos")
 def modelos():
     out = []
-    for f in sorted(editar.MODELOS.glob("*.json")):
-        m = ler(f, {})
+    for mid in editar.arquivos_modelos():
+        m = editar.carregar_modelo(mid)
         th = (m.get("edicao") or {}).get("theme") or {}
-        out.append({"id": f.stem, "nome": m.get("nome", f.stem), "descricao": m.get("descricao", ""), "formato": m.get("formato"),
+        out.append({"id": mid, "nome": m.get("nome", mid), "descricao": m.get("descricao", ""), "formato": m.get("formato"),
                     "cor": th.get("brand", "#224289"), "destaque": th.get("accent", "#F9C700"),
                     "legenda": ((m.get("edicao") or {}).get("subtitles") or {}).get("style", "ref"),
                     "musica": m.get("musica") or {}, "capa": m.get("capa") or {}, "encerramento": m.get("encerramento"),
                     "gancho": m.get("gancho") or {}, "broll": m.get("broll") or {}, "hashtags": (m.get("legenda") or {}).get("hashtags", [])})
+    out.sort(key=lambda x: (x["id"] != "reels", x["nome"]))
     return jsonify(out)
 
 
@@ -226,7 +312,7 @@ def criar():
     f.save(p / f"original{Path(nome).suffix}")
     titulo = request.form.get("titulo") or Path(f.filename).stem
     gravar(p / "projeto.json", {"titulo": titulo, "video": f"original{Path(nome).suffix}",
-                                "modelo": request.form.get("modelo", "conecta-reels"), "criado": time.time()})
+                                "modelo": request.form.get("modelo", "reels"), "criado": time.time()})
     gravar(p / "plano.json", {})
     return jsonify(projeto_info(pid))
 
@@ -378,9 +464,18 @@ def main():
         if d.get("estado") == "rodando":
             d.update(estado="erro", mensagem="Interrompido (o servidor foi reiniciado). Rode de novo.")
             gravar(t, d)
+    acesso.admin_inicial()
+    if not SEM_LOGIN and not acesso.existe_algum():
+        print("AVISO: nenhum usuário criado. Rode: python web/acesso.py adicionar voce@empresa.com")
     host = "0.0.0.0" if a.publico else "127.0.0.1"
-    print(f"Conecta Studio em http://{'localhost' if host == '127.0.0.1' else host}:{a.porta}")
-    app.run(host=host, port=a.porta, threaded=True)
+    print(f"{editar.marca().get('produto', 'Studio')} em http://{'localhost' if host == '127.0.0.1' else host}:{a.porta}")
+    try:
+        from waitress import serve
+        serve(app, host=host, port=a.porta, threads=12, max_request_body_size=app.config["MAX_CONTENT_LENGTH"],
+              channel_timeout=600, **({"trusted_proxy": "*", "trusted_proxy_count": 1, "trusted_proxy_headers": "x-forwarded-for x-forwarded-proto"}
+                 if os.environ.get("STUDIO_ATRAS_DE_PROXY") == "1" else {}))
+    except ImportError:
+        app.run(host=host, port=a.porta, threaded=True)
 
 
 if __name__ == "__main__":

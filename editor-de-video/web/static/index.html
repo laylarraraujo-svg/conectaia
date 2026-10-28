@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Conecta Studio</title>
+<title>Studio</title>
 <link rel="stylesheet" href="/static/app.css">
 </head>
 <body>
 <header class="topo">
-  <a class="marca" href="#" id="voltar-inicio"><span class="logo">C</span><span>Conecta <b>Studio</b></span></a>
+  <a class="marca" href="#" id="voltar-inicio"><span class="logo" id="logo-marca">S</span><span id="nome-produto">Studio</span></a>
   <div class="topo-projeto" id="topo-projeto" hidden>
     <input id="titulo-projeto" class="titulo-input" aria-label="Nome do vídeo">
     <span class="chip" id="chip-modelo"></span>
@@ -17,6 +17,7 @@
     <button class="btn" id="btn-rascunho" title="Render rápido para conferir">Gerar rascunho</button>
     <button class="btn btn-primario" id="btn-final">Gerar vídeo final</button>
   </div>
+  <button class="btn-link sair" id="btn-sair" hidden>Sair</button>
 </header>
 
 <!-- INÍCIO: lista de vídeos + novo vídeo -->
