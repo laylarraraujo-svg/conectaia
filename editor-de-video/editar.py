@@ -667,6 +667,17 @@ def main():
     else:
         shutil.copy2(sem_musica, final)
 
+    # 3b) efeitos sonoros sincronizados com as animações (sons sintetizados, sem direitos autorais)
+    fx = plano.get("efeitos_sonoros")
+    if fx:
+        import efeitos
+        sons = efeitos.gerar_biblioteca(work / "efeitos")
+        eventos = efeitos.eventos_de(overlays)
+        tmp = work / "com-efeitos.mp4"
+        if efeitos.mixar(final, eventos, sons, tmp, ganho=fx.get("ganho", 1.0) if isinstance(fx, dict) else 1.0):
+            shutil.move(tmp, final)
+            print(f"Efeitos sonoros: {len(eventos)}")
+
     # 4) capa
     capa_cfg = plano.get("capa", {})
     titulo = a.titulo_capa or capa_cfg.get("titulo") or gancho or (frases(words)[0]["texto"] if words else modelo.get("nome", ""))
