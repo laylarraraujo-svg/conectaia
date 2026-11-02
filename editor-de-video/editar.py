@@ -141,6 +141,10 @@ def preparar_video(src, dst, formato):
     if formato == "9:16":
         tw, th = 1080, 1920
         vf = f"scale={tw}:{th}:force_original_aspect_ratio=increase,crop={tw}:{th}"
+    elif formato == "dividido":
+        # tela dividida: a pessoa ocupa a metade de cima; a de baixo fica para o painel animado
+        tw, th = 1080, 1920
+        vf = "scale=1080:960:force_original_aspect_ratio=increase,crop=1080:960,pad=1080:1920:0:0:black"
     else:
         scale = min(1.0, 1920 / max(W, H))
         tw, th = int(W * scale) // 2 * 2, int(H * scale) // 2 * 2
@@ -449,14 +453,19 @@ def gerar_capa(quadro, out, titulo, modelo, spec):
         if not parte:
             continue
         dest = parte.startswith("*")
-        palavras += [(w.upper(), dest) for w in parte.strip("*").split()]
+        for w in parte.strip("*").split():
+            if palavras and re.fullmatch(r"[,.;:!?]+", w):      # pontuação gruda na palavra anterior
+                palavras[-1] = (palavras[-1][0] + w, palavras[-1][1])
+            else:
+                palavras.append((w.upper(), dest))
     tam = int((0.072 if vertical else 0.095) * H) if len(palavras) <= 6 else int((0.058 if vertical else 0.08) * H)
     fonte = _fonte(tam, spec)
     largura = W * 0.84
     linhas = _quebrar(d, palavras, fonte, largura)
     orfa = lambda ls: any(len(l) == 1 and len(l[0][0]) <= 4 for l in ls) and len(ls) > 1
     tam0 = tam
-    while (len(linhas) > 4 or orfa(linhas)) and tam > max(40, tam0 * 0.72):
+    larga = lambda ls: any(d.textlength(" ".join(x for x, _ in l), font=fonte) > largura for l in ls)
+    while (len(linhas) > 4 or orfa(linhas) or larga(linhas)) and tam > 40:
         tam = int(tam * 0.88)
         fonte = _fonte(tam, spec)
         linhas = _quebrar(d, palavras, fonte, largura)
@@ -563,10 +572,13 @@ def main():
     work.mkdir(parents=True, exist_ok=True)
 
     # 1) preparar + transcrever + cortar
-    prep = work / f"preparado-{slug(modelo.get('formato', 'original'))}.mp4"
+    formato = plano.get("formato", modelo.get("formato", "original"))
+    if formato == "dividido":
+        spec["dividido"] = True
+    prep = work / f"preparado-{slug(formato)}.mp4"
     if not prep.exists():
         print("Preparando vídeo...")
-        preparar_video(src, prep, modelo.get("formato", "original"))
+        preparar_video(src, prep, formato)
     info = probe(prep)
     W, H = info["width"], info["height"]
     words = transcrever(prep, work, spec, a.whisper) if info["has_audio"] else []
@@ -606,6 +618,7 @@ def main():
         end_start = max(0.5, dur - enc.get("duracao", 2.6))
     if enc:
         overlays.append({"type": "end_card", "text": enc.get("texto", ""), "subtext": enc.get("subtexto", ""),
+                         **({"background": enc["fundo"], "opacity": 1} if enc.get("fundo") else {}),
                          "start": round(end_start, 2), "duration": round(dur - end_start, 2),
                          **({"logo": modelo["logo_path"]} if modelo.get("logo_path") and enc.get("logo", True) else {})})
     fixos = [(o["start"], o["start"] + o["duration"]) for o in overlays if o.get("type") in ("pillars", "end_card", "chart", "stat", "cards", "numbered_title")]

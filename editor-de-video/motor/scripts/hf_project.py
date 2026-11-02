@@ -425,7 +425,7 @@ def build_endcard(c, ov):
         shutil.copy2(ov["logo"], dst)
         logo = (f'<img id="{i}-lg" class="abs" src="assets/{dst.name}" style="left:{W * 0.3:.0f}px;width:{W * 0.4:.0f}px;'
                 f'top:{H * 0.40 - H * 0.16:.0f}px;height:{H * 0.12:.0f}px;object-fit:contain">')
-    inner = (f'<div class="abs" style="inset:0;background:{bg};opacity:.94"></div>{logo}'
+    inner = (f'<div class="abs" style="inset:0;background:{bg};opacity:{ov.get("opacity", 0.94)}"></div>{logo}'
              f'<div id="{i}-t" class="abs" style="left:8%;width:84%;top:{H * 0.40:.0f}px;text-align:center;color:{th["text"]};'
              f'font-weight:800;text-transform:uppercase;font-size:{big}px;line-height:1.1">{text}</div>'
              f'<div id="{i}-b" class="abs" style="left:{W * 0.42:.0f}px;width:{W * 0.16:.0f}px;top:{H * 0.40 + big * 2.7:.0f}px;'
@@ -543,6 +543,9 @@ def build_project(project, video, words, spec, joins=None):
 
     c = Comp(W, H, theme)
     c.assets_dir = project / "assets"
+    if spec.get("dividido"):
+        import paineis
+        paineis.painel_fundo(c, dur)
     if sub.get("enabled", True) and words:
         quiet = [(o["start"], o["start"] + o["duration"]) for o in overlays if o.get("type") in ("numbered_title", "end_card")]
         ws = [w for w in words if not any(a - 0.05 <= w["start"] < b for a, b in quiet)]
@@ -565,6 +568,9 @@ def build_project(project, video, words, spec, joins=None):
             build_cards(c, ov, project / "assets")
         elif t == "pillars":
             build_pillars(c, ov, project / "assets")
+        elif t in ("alerta", "icones", "carimbo", "palavra", "lista_x", "tentativas", "faixas"):
+            import paineis
+            paineis.TIPOS[t](c, ov)
         elif t == "recorte":
             build_recorte(c, ov, project)
         elif t == "end_card":
@@ -576,8 +582,11 @@ def build_project(project, video, words, spec, joins=None):
     zoom_js = ""
     if punch.get("enabled"):
         for a, b, z in punch_schedule(dur, joins or [], punch):
-            zoom_js += f'tl.set("#a-roll",{{scale:{z:.3f},transformOrigin:"50% 30%"}},{a:.3f});'
+            origem = "50% 25%" if spec.get("dividido") else "50% 30%"     # na tela dividida o zoom fica na metade de cima
+            zoom_js += f'tl.set("#a-roll",{{scale:{z:.3f},transformOrigin:"{origem}"}},{a:.3f});'
 
+    if sub.get("max_width"):          # margem lateral: a legenda quebra linha em vez de passar da borda
+        css += f".cap-in{{max-width:{float(sub['max_width']) * 100:.0f}%;white-space:normal;line-height:1.05}}"
     gsap_src = ensure_gsap(project)
     doc = f"""<!doctype html>
 <html lang="pt-BR">
