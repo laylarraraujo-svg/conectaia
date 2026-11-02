@@ -545,11 +545,15 @@ def build_project(project, video, words, spec, joins=None):
     c.assets_dir = project / "assets"
     if spec.get("dividido"):
         import paineis
-        paineis.painel_fundo(c, dur)
+        paineis.painel_fundo(c, dur, project)
     if sub.get("enabled", True) and words:
         quiet = [(o["start"], o["start"] + o["duration"]) for o in overlays if o.get("type") in ("numbered_title", "end_card")]
         ws = [w for w in words if not any(a - 0.05 <= w["start"] < b for a, b in quiet)]
-        build_captions(c, ws, sub, theme, base_px)
+        if sub.get("style") == "camadas":
+            import paineis
+            paineis.legenda_camadas(c, ws, sub, theme, project)
+        else:
+            build_captions(c, ws, sub, theme, base_px)
     for ov in overlays:
         t = ov.get("type")
         if t == "title":
@@ -573,6 +577,9 @@ def build_project(project, video, words, spec, joins=None):
             paineis.TIPOS[t](c, ov)
         elif t == "recorte":
             build_recorte(c, ov, project)
+        elif t == "end_card" and ov.get("estilo") == "cinema":
+            import paineis
+            paineis.cartao_final(c, ov, project)
         elif t == "end_card":
             build_endcard(c, ov)
         elif t == "broll":

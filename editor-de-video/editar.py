@@ -134,8 +134,14 @@ def carregar_modelo(nome):
 
 
 # --------------------------------------------------------------------------- etapa 1: preparar vídeo
-def preparar_video(src, dst, formato):
-    """Normaliza para 30 fps / GOP curto e, se o modelo pedir 9:16, recorta o centro e redimensiona para 1080x1920."""
+GRADES = {   # correção de cor aplicada na pessoa
+    "cinema": "eq=contrast=1.10:brightness=-0.035:saturation=0.78,colorbalance=rs=0.03:gs=0.0:bs=-0.03:rh=0.02:bh=-0.02,vignette=PI/5",
+}
+
+
+def preparar_video(src, dst, formato, cor=None):
+    """Normaliza para 30 fps / GOP curto e, se o modelo pedir 9:16, recorta o centro e redimensiona para 1080x1920.
+    cor: nome de uma correção em GRADES (ex.: "cinema")."""
     info = probe(src)
     W, H = info["width"], info["height"]
     if formato == "9:16":
@@ -144,11 +150,15 @@ def preparar_video(src, dst, formato):
     elif formato == "dividido":
         # tela dividida: a pessoa ocupa a metade de cima; a de baixo fica para o painel animado
         tw, th = 1080, 1920
-        vf = "scale=1080:960:force_original_aspect_ratio=increase,crop=1080:960,pad=1080:1920:0:0:black"
+        g = f",{GRADES[cor]}" if cor in GRADES else ""
+        vf = f"scale=1080:960:force_original_aspect_ratio=increase,crop=1080:960{g},pad=1080:1920:0:0:black"
+        cor = None
     else:
         scale = min(1.0, 1920 / max(W, H))
         tw, th = int(W * scale) // 2 * 2, int(H * scale) // 2 * 2
         vf = f"scale={tw}:{th}"
+    if cor in GRADES:
+        vf += f",{GRADES[cor]}"
     args = ["-i", src, "-vf", f"{vf},setsar=1", "-r", "30", "-c:v", "libx264", "-preset", "veryfast", "-crf", "17",
             "-g", "30", "-keyint_min", "30", "-pix_fmt", "yuv420p"]
     args += ["-c:a", "aac", "-b:a", "192k", "-ar", "48000"] if info["has_audio"] else []
@@ -547,6 +557,7 @@ def main():
     ap.add_argument("--saida", help="pasta de saída (padrão: saida/<nome-do-video>)")
     ap.add_argument("--preparar", action="store_true", help="só transcreve e corta; gera transcricao.txt para planejar")
     ap.add_argument("--rascunho", action="store_true", help="render rápido em 540p para conferir")
+    ap.add_argument("--montar", action="store_true", help="só monta o projeto (para gerar quadros de prévia com previa_quadros.py)")
     ap.add_argument("--titulo-capa", help="título da capa (use *palavra* para destacar)")
     ap.add_argument("--whisper", default="small", help="modelo do Whisper: tiny/base/small/medium/large-v3")
     ap.add_argument("--listar-modelos", action="store_true")
@@ -575,10 +586,11 @@ def main():
     formato = plano.get("formato", modelo.get("formato", "original"))
     if formato == "dividido":
         spec["dividido"] = True
-    prep = work / f"preparado-{slug(formato)}.mp4"
+    cor = plano.get("cor")
+    prep = work / f"preparado-{slug(formato)}{'-' + slug(cor) if cor else ''}.mp4"
     if not prep.exists():
         print("Preparando vídeo...")
-        preparar_video(src, prep, formato)
+        preparar_video(src, prep, formato, cor)
     info = probe(prep)
     W, H = info["width"], info["height"]
     words = transcrever(prep, work, spec, a.whisper) if info["has_audio"] else []
@@ -619,6 +631,7 @@ def main():
     if enc:
         overlays.append({"type": "end_card", "text": enc.get("texto", ""), "subtext": enc.get("subtexto", ""),
                          **({"background": enc["fundo"], "opacity": 1} if enc.get("fundo") else {}),
+                         **({"estilo": enc["estilo"]} if enc.get("estilo") else {}),
                          "start": round(end_start, 2), "duration": round(dur - end_start, 2),
                          **({"logo": modelo["logo_path"]} if modelo.get("logo_path") and enc.get("logo", True) else {})})
     fixos = [(o["start"], o["start"] + o["duration"]) for o in overlays if o.get("type") in ("pillars", "end_card", "chart", "stat", "cards", "numbered_title")]
@@ -635,6 +648,10 @@ def main():
         shutil.rmtree(hf)
     build_project(hf, cortado, words, {**spec, "overlays": overlays, "subtitles": {**spec.get("subtitles", {}), "enabled": bool(words) and spec.get("subtitles", {}).get("enabled", True)}},
                   stats.get("joins", []))
+    if a.montar:
+        save_json({"duracao": dur, "cortado": str(cortado)}, hf / "previa.json")
+        print(f"Projeto montado: {hf}")
+        return
     sem_musica = work / ("render-rascunho.mp4" if a.rascunho else "render.mp4")
     print(f"Renderizando {'rascunho ' if a.rascunho else ''}({len(overlays)} elementos na tela, {dur:.1f}s)...")
     try:
