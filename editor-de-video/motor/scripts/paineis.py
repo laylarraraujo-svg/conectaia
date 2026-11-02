@@ -25,9 +25,8 @@ def esc(s):
 
 
 def rico(texto, cor):
-    """Texto normal na grotesca; *trechos* em serifada itálica na cor de destaque."""
-    return re.sub(r"\*(.+?)\*", rf'<span style="font-family:{SERIF};font-style:italic;font-weight:400;color:{cor};'
-                                rf'letter-spacing:0">\1</span>', esc(texto))
+    """*Trechos* entre asteriscos saem na cor de destaque, na mesma fonte do resto (o cliente não quer serifada)."""
+    return re.sub(r"\*(.+?)\*", rf'<span style="color:{cor}">\1</span>', esc(texto))
 
 
 def registrar_fontes(c, project):
@@ -141,7 +140,7 @@ def palavra(c, ov):
             f'stroke-linecap="round" stroke-linejoin="round"><path d="M154 20 H8 M24 6 L8 20 L24 34"/></svg>')
     inner = (f'<div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:{h * 0.04:.0f}px">'
              + (f'<div id="{i}-l" style="font-family:{SANS};font-weight:600;font-size:{h * 0.065:.0f}px;color:rgba(255,255,255,.7)">{esc(ov["apoio"])}</div>' if ov.get("apoio") else "")
-             + f'<div id="{i}-p" style="font-family:{SERIF};font-style:italic;font-size:{h * 0.3:.0f}px;line-height:1;color:{ac}">{esc(ov["texto"])}</div>'
+             + f'<div id="{i}-p" style="font-family:{SANS};font-weight:900;letter-spacing:-.025em;font-size:{h * 0.2:.0f}px;line-height:1;color:{ac}">{esc(ov["texto"])}</div>'
              f'<div id="{i}-a">{seta}</div></div>')
     _clip(c, i, ov, inner)
     s = ov["start"]

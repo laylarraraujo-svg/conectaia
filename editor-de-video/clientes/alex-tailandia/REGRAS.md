@@ -10,6 +10,7 @@ Regras fixas para TODOS os vídeos deste cliente. Ler antes de montar qualquer p
      duas camadas: frase de apoio pequena e mais leve + palavras principais grandes, com a palavra-chave na cor de destaque;
      palavras entram com desfoque → nítido.
    - Identidade visual: o "vídeo dois" — visual cinematográfico escuro, tela dividida, recortes e destaques elegantes,
-     serifada itálica em palavras de efeito, efeito glitch pontual.
+     efeito glitch pontual.
+   - **Sem fonte serifada** (pedido de 02/11/2026): palavras de efeito na mesma fonte (Inter Display Black), só que na cor de destaque (amarelo).
 3. Recortes de jornal só com notícias reais; o cliente prefere não usar notícias (02/11/2026) — usar animações a partir da fala.
 4. Capa: tela dividida, chamativa, sem cobrir o rosto.
