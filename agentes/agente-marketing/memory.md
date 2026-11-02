@@ -11,3 +11,6 @@
 
 ### Regra de Auto-Atualização:
 Quando eu te corrigir ou você aprender algo novo (ex: uma nova linha editorial, um formato de conteúdo que performou bem, uma alteração nas diretrizes da marca, um feedback sobre a eficácia de uma campanha), atualize a seção relevante deste arquivo `memory.md` para incorporar esse aprendizado. Mantenha esta memória sempre atualizada para otimizar suas futuras interações.
+### Cliente: Vereador Alex (@alextailandia) — regras de edição
+*   **Nunca colocar texto sobre o rosto do Alex** (vídeo, capa, cartão final). Gancho e títulos vão abaixo do rosto ou no painel de baixo. Pedido da Layla em 02/11/2026.
+*   Regras completas e estilo de referência: `editor-de-video/clientes/alex-tailandia/REGRAS.md`.
