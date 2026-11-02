@@ -1,4 +1,6 @@
-# Regras do cliente: Vereador Alex (@alextailandia)
+# Regras do cliente: Vereador Alex Tailândia (@alextailandia)
+
+Nome para usar em capa e assinaturas: **Alex Tailândia** (Vereador · Mogi Guaçu).
 
 Regras fixas para TODOS os vídeos deste cliente. Ler antes de montar qualquer plano.
 
