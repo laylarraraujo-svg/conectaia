@@ -197,7 +197,8 @@ def limpar_fala(words):
     """Tira repetições de gaguejo ("em em", "a A") e põe maiúscula na primeira palavra."""
     out = []
     for w in words:
-        if out and norm(w["word"]) and norm(w["word"]) == norm(out[-1]["word"]) and w["start"] - out[-1]["end"] < 0.8:
+        if (out and norm(w["word"]) and norm(w["word"]) == norm(out[-1]["word"]) and w["start"] - out[-1]["end"] < 0.8
+                and not out[-1]["word"].rstrip().endswith((".", "!", "?", ","))):   # "impugnada. Impugnada." é ênfase, fica
             out[-1] = {**out[-1], "end": w["end"]}
             continue
         out.append(dict(w))
