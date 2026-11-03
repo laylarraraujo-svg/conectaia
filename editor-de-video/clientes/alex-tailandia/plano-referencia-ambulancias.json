@@ -1,0 +1,123 @@
+{
+  "_sobre": "Plano aprovado do vídeo das ambulâncias (03/11/2026), trecho 0:60-2:02 do CMMG[8]. Usar com o modelo alex-tela-dividida.",
+  "substituicoes": {
+    "falsetti": "Falsetti"
+  },
+  "overlays": [
+    {
+      "type": "alerta",
+      "texto": "Pela *4ª vez*, sem ambulâncias",
+      "sub": "Atenção, Mogi Guaçu · Vereador Alex Tailândia",
+      "start": 0.1,
+      "duration": 6.0
+    },
+    {
+      "type": "icones",
+      "n": 3,
+      "rotulo": "3 *ambulâncias*",
+      "start": 6.2,
+      "duration": 8.2
+    },
+    {
+      "type": "carimbo",
+      "texto": "IMPUGNADA",
+      "start": 11.2,
+      "duration": 3.2,
+      "batidas": [
+        11.25,
+        12.8
+      ]
+    },
+    {
+      "type": "palavra",
+      "texto": "retrocesso",
+      "apoio": "Esse é o",
+      "start": 14.5,
+      "duration": 3.0
+    },
+    {
+      "type": "lista_x",
+      "itens": [
+        {
+          "texto": "Não avança",
+          "inicio": 19.0
+        },
+        {
+          "texto": "Não faz *o básico*",
+          "inicio": 23.9
+        }
+      ],
+      "start": 17.55,
+      "duration": 7.4
+    },
+    {
+      "type": "tentativas",
+      "n": 4,
+      "marcas": [
+        29.5,
+        29.75,
+        30.0,
+        30.25
+      ],
+      "rotulo": "4ª *vez*",
+      "rotulo_em": 30.5,
+      "sub": "IMPUGNADA · CANCELADA",
+      "sub_em": 32.4,
+      "start": 25.0,
+      "duration": 8.95
+    },
+    {
+      "type": "icones",
+      "n": 3,
+      "apagado": true,
+      "rotulo": "3 ambulâncias que *não chegaram*",
+      "start": 34.0,
+      "duration": 6.0
+    },
+    {
+      "type": "faixas",
+      "itens": [
+        {
+          "texto": "*Prejuízo* para a população",
+          "inicio": 40.9
+        },
+        {
+          "texto": "Retrocesso *administrativo*",
+          "inicio": 44.0
+        }
+      ],
+      "start": 40.05,
+      "duration": 8.2
+    }
+  ],
+  "encerramento": {
+    "subtexto": "VEREADOR ALEX TAILÂNDIA"
+  },
+  "legenda": "Pela quarta vez, a licitação para comprar 3 ambulâncias para Mogi Guaçu foi impugnada.\n\nNa tribuna da Câmara, cobrei: é a quarta tentativa impugnada e cancelada, e a população continua sem as três ambulâncias de que precisa. Um prejuízo para quem depende da saúde pública e um retrocesso administrativo.\n\nVou continuar acompanhando e cobrando. Compartilhe para que mais pessoas fiquem sabendo.\n\n#MogiGuacu #CamaraMogiGuacu #Saude #Ambulancias",
+  "capa": {
+    "faixas": [
+      {
+        "texto": "Alex Tailândia cobra",
+        "fundo": "#1C3B95",
+        "cor": "#FCE300",
+        "tam": 62
+      },
+      {
+        "texto": "4ª vez sem\nambulâncias",
+        "fundo": "#0B7D3B",
+        "cor": "#FFFFFF",
+        "tam": 86
+      },
+      {
+        "texto": "Licitação impugnada\nde novo em Mogi Guaçu",
+        "fundo": "#F7D115",
+        "cor": "#1C3B95",
+        "tam": 58
+      }
+    ],
+    "icones": {
+      "tipo": "ambulancia_x",
+      "n": 3
+    }
+  }
+}

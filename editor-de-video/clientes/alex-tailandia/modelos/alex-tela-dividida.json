@@ -1,0 +1,95 @@
+{
+  "nome": "Alex Tailândia · Tela dividida",
+  "descricao": "Padrão aprovado do vereador Alex Tailândia: tela dividida (Alex em cima, painel animado embaixo), cor de cinema, 1,2x mais rápido, legenda em duas camadas acima da divisória, animações no painel, efeitos sonoros, música suspense, cartão final preto e capa de faixas azul/verde/amarelo. Nunca texto no rosto.",
+  "formato": "dividido",
+  "cor": "cinema",
+  "velocidade": 1.2,
+  "efeitos_sonoros": true,
+  "edicao": {
+    "font": "{fonte}",
+    "theme": {
+      "accent": "{destaque}",
+      "text": "{texto}",
+      "brand": "{cor}"
+    },
+    "silence": {
+      "enabled": true,
+      "threshold_db": -32,
+      "min_silence": 0.3,
+      "padding": 0.06
+    },
+    "subtitles": {
+      "enabled": true,
+      "style": "camadas",
+      "pos_y": 0.445,
+      "max_words": 6,
+      "max_chars": 34
+    },
+    "punch_in": {
+      "enabled": true,
+      "levels": [
+        1.0,
+        1.08,
+        1.0,
+        1.14
+      ],
+      "max_hold": 3.0,
+      "min_hold": 1.2
+    },
+    "replacements": "{substituicoes}"
+  },
+  "gancho": {
+    "duracao": 0,
+    "posicao": "painel"
+  },
+  "broll": {
+    "duracao_foto": 2.0,
+    "duracao_video": 2.8,
+    "layout": "janela",
+    "evitar_inicio": 1.5,
+    "evitar_fim": 3.0,
+    "intervalo_min": 2.5
+  },
+  "musica": {
+    "arquivo": "suspense.mp3",
+    "volume": 0.16,
+    "ducking": true,
+    "fade_in": 0.8,
+    "fade_out": 2.0
+  },
+  "encerramento": {
+    "texto": "Siga *@alextailandia*",
+    "subtexto": "{assinatura}",
+    "duracao": 2.6,
+    "depois_da_fala": true,
+    "fundo": "#000000",
+    "estilo": "cinema"
+  },
+  "capa": {
+    "estilo": "faixas",
+    "faixas": [
+      {
+        "texto": "Alex Tailândia ...",
+        "fundo": "#1C3B95",
+        "cor": "#FCE300",
+        "tam": 62
+      },
+      {
+        "texto": "FRASE PRINCIPAL",
+        "fundo": "#0B7D3B",
+        "cor": "#FFFFFF",
+        "tam": 86
+      },
+      {
+        "texto": "complemento",
+        "fundo": "#F7D115",
+        "cor": "#1C3B95",
+        "tam": 58
+      }
+    ]
+  },
+  "legenda": {
+    "cta": "{cta}",
+    "hashtags": "{hashtags}"
+  }
+}

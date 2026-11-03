@@ -139,9 +139,9 @@ GRADES = {   # correção de cor aplicada na pessoa
 }
 
 
-def preparar_video(src, dst, formato, cor=None):
+def preparar_video(src, dst, formato, cor=None, velocidade=1.0):
     """Normaliza para 30 fps / GOP curto e, se o modelo pedir 9:16, recorta o centro e redimensiona para 1080x1920.
-    cor: nome de uma correção em GRADES (ex.: "cinema")."""
+    cor: nome de uma correção em GRADES (ex.: "cinema"). velocidade: 1.2 = 20% mais rápido (voz sem mudar o tom)."""
     info = probe(src)
     W, H = info["width"], info["height"]
     if formato == "9:16":
@@ -159,8 +159,18 @@ def preparar_video(src, dst, formato, cor=None):
         vf = f"scale={tw}:{th}"
     if cor in GRADES:
         vf += f",{GRADES[cor]}"
+    velocidade = float(velocidade or 1.0)
+    if abs(velocidade - 1.0) > 1e-3:
+        vf = f"setpts=PTS/{velocidade},{vf}"
     args = ["-i", src, "-vf", f"{vf},setsar=1", "-r", "30", "-c:v", "libx264", "-preset", "veryfast", "-crf", "17",
             "-g", "30", "-keyint_min", "30", "-pix_fmt", "yuv420p"]
+    if info["has_audio"] and abs(velocidade - 1.0) > 1e-3:
+        v, cadeia = velocidade, []
+        while v > 2.0:                       # atempo aceita até 2x por estágio
+            cadeia.append("atempo=2.0")
+            v /= 2.0
+        cadeia.append(f"atempo={v:.4f}")
+        args += ["-af", ",".join(cadeia)]
     args += ["-c:a", "aac", "-b:a", "192k", "-ar", "48000"] if info["has_audio"] else []
     ff(*args, dst)
     return tw, th
@@ -532,6 +542,95 @@ def gerar_capa(quadro, out, titulo, modelo, spec):
     return out
 
 
+def _desenhar_ambulancia_x(d, cx, cy, w):
+    """Ambulância em traço branco com X vermelho (ícone da capa)."""
+    h = w * 0.68
+    x0, y0, lw = cx - w / 2, cy - h / 2, max(3, int(w * 0.03))
+    d.rounded_rectangle((x0 + w * 0.03, y0 + h * 0.24, x0 + w * 0.64, y0 + h * 0.76), radius=int(w * 0.05), outline="white", width=lw)
+    d.line([(x0 + w * 0.64, y0 + h * 0.38), (x0 + w * 0.8, y0 + h * 0.38), (x0 + w * 0.95, y0 + h * 0.58), (x0 + w * 0.95, y0 + h * 0.76),
+            (x0 + w * 0.64, y0 + h * 0.76)], fill="white", width=lw, joint="curve")
+    d.line([(x0 + w * 0.33, y0 + h * 0.36), (x0 + w * 0.33, y0 + h * 0.64)], fill="#E5242B", width=lw * 2)
+    d.line([(x0 + w * 0.22, y0 + h * 0.5), (x0 + w * 0.44, y0 + h * 0.5)], fill="#E5242B", width=lw * 2)
+    for wx in (0.2, 0.78):
+        r = w * 0.075
+        d.ellipse((x0 + w * wx - r, y0 + h * 0.79 - r, x0 + w * wx + r, y0 + h * 0.79 + r), fill="#05070D", outline="white", width=lw)
+    m = w * 0.12
+    for a, b in (((x0 + m, y0 - h * 0.05), (x0 + w - m, y0 + h * 1.05)), ((x0 + w - m, y0 - h * 0.05), (x0 + m, y0 + h * 1.05))):
+        d.line([a, b], fill="#E5242B", width=lw * 2)
+
+
+def gerar_capa_faixas(quadro, out, cfg, dividido=True):
+    """Capa no modelo de faixas empilhadas (azul / verde / amarelo...), no centro da divisória e sem cobrir o rosto.
+    cfg["faixas"]: [{"texto": "LINHA 1\nLINHA 2", "fundo": "#1C3B95", "cor": "#FCE300", "tam": 62}, ...]
+    cfg["icones"]: {"tipo": "ambulancia_x", "n": 3} (opcional, no painel de baixo)."""
+    from PIL import Image, ImageDraw, ImageFilter, ImageFont
+    W, H = 1080, 1920
+    img = Image.new("RGB", (W, H), (4, 5, 10))
+    base = Image.open(quadro).convert("RGB")
+    if dividido:
+        topo = base.resize((W, int(base.height * W / base.width))).crop((0, 0, W, H // 2))
+    else:
+        esc_ = max(W / base.width, (H // 2) / base.height)
+        topo = base.resize((int(base.width * esc_), int(base.height * esc_)))
+        topo = topo.crop(((topo.width - W) // 2, 0, (topo.width - W) // 2 + W, H // 2))
+    img.paste(topo, (0, 0))
+    grad = Image.new("RGBA", (W, H // 2))                     # painel de baixo: azul-noite escurecendo
+    gd = ImageDraw.Draw(grad)
+    for y in range(H // 2):
+        k = y / (H // 2)
+        gd.line([(0, y), (W, y)], fill=(int(18 - 14 * k), int(27 - 22 * k), int(51 - 41 * k), 255))
+    img.paste(grad, (0, H // 2), grad)
+    sombra = Image.new("L", (1, 340))
+    for y in range(340):
+        sombra.putpixel((0, y), int(140 * y / 340))
+    preto = Image.new("RGB", (W, 340), (0, 0, 0))
+    img.paste(preto, (0, H // 2 - 340), sombra.resize((W, 340)))
+
+    fonte_arq = str(ROOT / "motor" / "fonts" / "Montserrat-ExtraBold.ttf")
+    faixas = cfg.get("faixas") or []
+    largura, pad_x, pad_y = int(W * 0.87), 34, 22
+    blocos = []
+    for k, f in enumerate(faixas):
+        linhas = [l.upper() for l in str(f["texto"]).split("\n")]
+        tam = int(f.get("tam", 64))
+        fonte = ImageFont.truetype(fonte_arq, tam)
+        medir = ImageDraw.Draw(img)
+        while tam > 30 and max(medir.textlength(l, font=fonte) for l in linhas) > largura - 2 * pad_x:
+            tam -= 2
+            fonte = ImageFont.truetype(fonte_arq, tam)
+        lh = int(tam * 1.06)
+        blocos.append((f, linhas, fonte, lh, lh * len(linhas) + 2 * pad_y))
+    total = sum(b[4] for b in blocos) - 6 * max(0, len(blocos) - 1)
+    y = int(H * 0.5 - total * 0.42)
+    desloc = [-14, 12, -6, 10]
+    camada = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+    for k, (f, linhas, fonte, lh, alt) in enumerate(blocos):
+        x0 = (W - largura) // 2 + desloc[k % len(desloc)]
+        caixa = (x0, y, x0 + largura, y + alt)
+        sh = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        ImageDraw.Draw(sh).rounded_rectangle((caixa[0], caixa[1] + 14, caixa[2], caixa[3] + 14), radius=8, fill=(0, 0, 0, 115))
+        camada = Image.alpha_composite(camada, sh.filter(ImageFilter.GaussianBlur(16)))
+        d = ImageDraw.Draw(camada)
+        d.rounded_rectangle(caixa, radius=8, fill=f.get("fundo", "#1C3B95"))
+        for i, l in enumerate(linhas):
+            tw = d.textlength(l, font=fonte)
+            d.text((x0 + (largura - tw) / 2, y + pad_y + i * lh), l, font=fonte, fill=f.get("cor", "#FFFFFF"))
+        y += alt - 6
+    img = Image.alpha_composite(img.convert("RGBA"), camada).convert("RGB")
+    ic = cfg.get("icones")
+    if ic and ic.get("tipo") == "ambulancia_x":
+        d = ImageDraw.Draw(img)
+        n, w = int(ic.get("n", 3)), 230
+        gap = 64
+        cy = y + 150
+        x = (W - (n * w + (n - 1) * gap)) / 2
+        for _ in range(n):
+            _desenhar_ambulancia_x(d, x + w / 2, cy, w)
+            x += w + gap
+    img.save(out, quality=93)
+    return out
+
+
 # --------------------------------------------------------------------------- etapa 5: legenda do post
 def gerar_legenda(words, gancho, modelo):
     """Rascunho automático. O ideal é o Claude (Agente Marketing) escrever a legenda final no plano."""
@@ -586,11 +685,12 @@ def main():
     formato = plano.get("formato", modelo.get("formato", "original"))
     if formato == "dividido":
         spec["dividido"] = True
-    cor = plano.get("cor")
-    prep = work / f"preparado-{slug(formato)}{'-' + slug(cor) if cor else ''}.mp4"
+    cor = plano.get("cor", modelo.get("cor"))
+    vel = float(plano.get("velocidade", modelo.get("velocidade", 1.0)))
+    prep = work / f"preparado-{slug(formato)}{'-' + slug(cor) if cor else ''}{f'-{vel:g}x' if vel != 1 else ''}.mp4"
     if not prep.exists():
-        print("Preparando vídeo...")
-        preparar_video(src, prep, formato, cor)
+        print("Preparando vídeo..." + (f" (velocidade {vel:g}x)" if vel != 1 else ""))
+        preparar_video(src, prep, formato, cor, vel)
     info = probe(prep)
     W, H = info["width"], info["height"]
     words = transcrever(prep, work, spec, a.whisper) if info["has_audio"] else []
@@ -668,7 +768,7 @@ def main():
         shutil.copy2(sem_musica, final)
 
     # 3b) efeitos sonoros sincronizados com as animações (sons sintetizados, sem direitos autorais)
-    fx = plano.get("efeitos_sonoros")
+    fx = plano.get("efeitos_sonoros", modelo.get("efeitos_sonoros"))
     if fx:
         import efeitos
         sons = efeitos.gerar_biblioteca(work / "efeitos")
@@ -681,11 +781,13 @@ def main():
     # 4) capa
     capa_cfg = plano.get("capa", {})
     titulo = a.titulo_capa or capa_cfg.get("titulo") or gancho or (frases(words)[0]["texto"] if words else modelo.get("nome", ""))
-    if capa_cfg.get("estilo"):
-        modelo["capa"] = {**(modelo.get("capa") or {}), "estilo": capa_cfg["estilo"]}
+    modelo["capa"] = {**(modelo.get("capa") or {}), **capa_cfg}
     evitar = [(b["start"], b["start"] + b["duration"]) for b in broll] + ([(end_start, dur)] if enc else [])
     quadro = Path(capa_cfg["imagem"]) if capa_cfg.get("imagem") else melhor_quadro(cortado, work, dur, capa_cfg.get("tempo"), evitar)
-    gerar_capa(quadro, saida / "capa.jpg", titulo, modelo, spec)
+    if modelo["capa"].get("estilo") == "faixas":
+        gerar_capa_faixas(quadro, saida / "capa.jpg", modelo["capa"], dividido=formato == "dividido")
+    else:
+        gerar_capa(quadro, saida / "capa.jpg", titulo, modelo, spec)
 
     # 5) legenda do post
     legenda = plano.get("legenda") or gerar_legenda(words, gancho, modelo)

@@ -3,6 +3,7 @@
 Nome para usar em capa e assinaturas: **Alex Tailândia** (Vereador · Mogi Guaçu).
 
 Regras fixas para TODOS os vídeos deste cliente. Ler antes de montar qualquer plano.
+Passo a passo e configurações: skill `agentes/agente-marketing/skills/editar-video-alex-tailandia/SKILL.md` (modelo `alex-tela-dividida`).
 
 1. **Nunca colocar texto, título, gancho, gráfico ou qualquer elemento sobre o rosto do Alex.**
    Isso vale para o vídeo, a capa e o cartão final. Textos ficam abaixo do rosto (na tela dividida: na parte de baixo do
