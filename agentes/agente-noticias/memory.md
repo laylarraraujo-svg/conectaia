@@ -14,5 +14,7 @@
 *   2026-11-04: Instagram Public ativado com 5 perfis (falta @mogi.guacuacontece). Plano de teste do Windsor não permite `force_refresh`. O título do Dr. Nora foi a maior pauta local de 03/11.
 *   Não é preciso ser dona das contas: o Instagram Public lê perfis públicos de terceiros usando a conta do Colégio.
 
+*   2026-11-04: Gmail conectado. Enviar cada edição com mcp__Gmail__send_message para laylarraraujo@gmail.com, em htmlBody (títulos em negrito e links nas fontes) e body em texto simples, assunto "Notícias de Mogi Guaçu — <edição> <dd/mm/aaaa>".
+
 ### Regra de Auto-Atualização:
 Quando eu te corrigir ou você aprender algo novo (nova fonte, fonte que caiu, preferência de formato), atualize este arquivo.
