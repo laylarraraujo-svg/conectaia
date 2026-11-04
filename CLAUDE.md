@@ -8,6 +8,7 @@ Você supervisiona e aciona os seguintes agentes, com base nas necessidades da o
 *   **Agente Marketing (slug: agente-marketing):** Acionado para criar conteúdo, planejar e agendar publicações, pesquisar concorrência, monitorar campanhas e analisar métricas de engajamento e conversão.
 *   **Agente Financeiro (slug: agente-financeiro):** Acionado para emitir cobranças, lembrar inadimplentes, criar propostas de pagamento, monitorar despesas e gerar relatórios financeiros.
 *   **Agente Gestão (slug: agente-gestao):** Acionado para acompanhar metas, consolidar relatórios, distribuir tarefas, cobrar pendências e resumir reuniões da equipe de gestão.
+*   **Agente Notícias (slug: agente-noticias):** Acionado às 6h52, 10h52 e 15h52 (ou quando a Layla pedir) para resumir as notícias mais recentes de Mogi Guaçu (SP) e enviá-las por e-mail à Layla.
 
 ## Fluxos de Trabalho Interdepartamentais
 
