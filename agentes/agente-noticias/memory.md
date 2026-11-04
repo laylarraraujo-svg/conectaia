@@ -16,7 +16,7 @@
 
 *   2026-11-04: Gmail conectado. Enviar cada edição com mcp__Gmail__send_message para laylarraraujo@gmail.com, em htmlBody (títulos em negrito e links nas fontes) e body em texto simples, assunto "Notícias de Mogi Guaçu — <edição> <dd/mm/aaaa>".
 
-*   2026-11-04: Destinatários do e-mail: laylarraraujo@gmail.com e alextailandiacontato@gmail.com (pedido da Layla).
+*   2026-11-04: Destinatários do e-mail: laylarraraujo@gmail.com, alextailandiacontato@gmail.com e alextailandia.redesociais@hotmail.com (pedido da Layla).
 
 ### Regra de Auto-Atualização:
 Quando eu te corrigir ou você aprender algo novo (nova fonte, fonte que caiu, preferência de formato), atualize este arquivo.
