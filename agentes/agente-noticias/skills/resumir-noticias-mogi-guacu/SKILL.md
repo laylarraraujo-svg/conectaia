@@ -25,7 +25,7 @@
 3.  **Juntar repetidas:** a mesma notícia em várias fontes vira um único item, citando a fonte principal.
 4.  **Filtrar e priorizar:** segurança e ocorrências > trânsito e obras > saúde > serviços públicos (água, energia, coleta) > prefeitura e Câmara > economia local > eventos > clima que afete a cidade. Ignore propaganda, colunas de opinião e posts sem notícia.
 5.  **Escrever:** do mais ao menos importante.
-6.  **Entregar:** no chat e por e-mail (laylarraraujo@gmail.com, assunto "Notícias de Mogi Guaçu — <edição> <data>"). Salve em `edicoes/AAAA-MM-DD-<edicao>.md`.
+6.  **Entregar:** no chat e por e-mail (laylarraraujo@gmail.com e alextailandiacontato@gmail.com, assunto "Notícias de Mogi Guaçu — <edição> <data>"). Salve em `edicoes/AAAA-MM-DD-<edicao>.md`.
 
 **Formato:**
 ```
