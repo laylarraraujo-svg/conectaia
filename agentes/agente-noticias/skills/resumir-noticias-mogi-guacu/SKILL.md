@@ -15,6 +15,8 @@
     *   https://www.instagram.com/mogiguacu.noticias/
     *   https://www.instagram.com/portaltribunadoguacu/
     *   https://www.instagram.com/portalvozdoguacu/
+*   **Como ler o Instagram:** conector Windsor.ai `instagram_public` → `get_data` com os campos `account_name`, `media_timestamp`, `media_caption`, `media_permalink`, `media_type` e `date_from`/`date_to` cobrindo a janela. Horários vêm em UTC (subtrair 3h). Use o `media_permalink` como link da fonte.
+*   **Filtro do Instagram:** esses perfis postam muito sobre outras cidades (Campinas, Indaiatuba, Valinhos) e política nacional. Mantenha só o que é de Mogi Guaçu ou afeta a cidade (ex.: SP-340).
 *   Complemento (se uma fonte falhar): busca na web por "Mogi Guaçu" + data.
 
 **Passos:**
