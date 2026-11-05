@@ -18,5 +18,7 @@
 
 *   2026-11-04: Destinatários do e-mail: laylarraraujo@gmail.com, alextailandiacontato@gmail.com e alextailandia.redesociais@hotmail.com (pedido da Layla).
 
+*   2026-11-05: O Windsor.ai passou a trazer outros perfis (guacuagora, vereadorjefersonluis, drnoraneto, marceloanamilanez). Usar @guacuagora como fonte jornalística; posts de políticos e perfis pessoais não são fonte, só contexto.
+
 ### Regra de Auto-Atualização:
 Quando eu te corrigir ou você aprender algo novo (nova fonte, fonte que caiu, preferência de formato), atualize este arquivo.
