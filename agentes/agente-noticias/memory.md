@@ -20,5 +20,7 @@
 
 *   2026-11-05: O Windsor.ai passou a trazer outros perfis (guacuagora, vereadorjefersonluis, drnoraneto, marceloanamilanez). Usar @guacuagora como fonte jornalística; posts de políticos e perfis pessoais não são fonte, só contexto.
 
+*   2026-11-06: A Layla pediu para acompanhar todos os perfis que ela adiciona no Windsor.ai. Hoje são 11 (5 portais + 6 políticos/figuras públicas). @mogiguacu.noticias saiu da lista; @mogi.guacuacontece nunca entrou (o site do portal continua sendo lido).
+
 ### Regra de Auto-Atualização:
 Quando eu te corrigir ou você aprender algo novo (nova fonte, fonte que caiu, preferência de formato), atualize este arquivo.

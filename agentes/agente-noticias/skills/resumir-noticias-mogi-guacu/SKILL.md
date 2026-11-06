@@ -8,13 +8,10 @@
 *   Sites
     *   Mogi Guaçu Acontece — https://mogiguacuacontece.com.br/
     *   Câmara Municipal — https://camaramogiguacu.sp.gov.br/pautas-das-sessoes/ (destacar sessões previstas e projetos em votação; abrir o PDF da pauta mais recente)
-*   Instagram
-    *   https://www.instagram.com/conexaomogiana/
-    *   https://www.instagram.com/zatumnoticias/
-    *   https://www.instagram.com/mogi.guacuacontece/
-    *   https://www.instagram.com/mogiguacu.noticias/
-    *   https://www.instagram.com/portaltribunadoguacu/
-    *   https://www.instagram.com/portalvozdoguacu/
+*   Instagram (via Windsor.ai, conector `instagram_public` — ler TODOS os perfis conectados, sem filtrar por conta; se a Layla adicionar perfis novos no Windsor, eles entram automaticamente)
+    *   Portais de notícia (fonte principal): @conexaomogiana, @zatumnoticias, @portaltribunadoguacu, @portalvozdoguacu, @guacuagora
+    *   Políticos e figuras públicas (fonte complementar): @rodrigofalsetti_, @vereadorjefersonluis, @vereadorguilhermedafarmacia, @marcal.damiao, @drnoraneto, @marceloanamilanez
+*   **Regra para perfis de políticos e figuras públicas:** use quando o post traz fato novo da cidade (anúncio da prefeitura, obra, fiscalização, denúncia, posição sobre um tema em pauta). Sempre atribua ("segundo o prefeito...", "o vereador X afirma...") e não trate opinião como fato. Ignore autopromoção, agradecimentos, felicitações, rifas, adoções e posts sem informação.
 *   **Como ler o Instagram:** conector Windsor.ai `instagram_public` → `get_data` com os campos `account_name`, `media_timestamp`, `media_caption`, `media_permalink`, `media_type` e `date_from`/`date_to` cobrindo a janela. Horários vêm em UTC (subtrair 3h). Use o `media_permalink` como link da fonte.
 *   **Filtro do Instagram:** esses perfis postam muito sobre outras cidades (Campinas, Indaiatuba, Valinhos) e política nacional. Mantenha só o que é de Mogi Guaçu ou afeta a cidade (ex.: SP-340).
 *   Complemento (se uma fonte falhar): busca na web por "Mogi Guaçu" + data.
