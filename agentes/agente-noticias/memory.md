@@ -22,5 +22,7 @@
 
 *   2026-11-06: A Layla pediu para acompanhar todos os perfis que ela adiciona no Windsor.ai. Hoje são 11 (5 portais + 6 políticos/figuras públicas). @mogiguacu.noticias saiu da lista; @mogi.guacuacontece nunca entrou (o site do portal continua sendo lido).
 
+*   Nomes: vereador Amaraí Gomes = "Pezão" (União Brasil). O PDF da Câmara pode trazer nomes com erro de leitura; conferir nos portais.
+
 ### Regra de Auto-Atualização:
 Quando eu te corrigir ou você aprender algo novo (nova fonte, fonte que caiu, preferência de formato), atualize este arquivo.
