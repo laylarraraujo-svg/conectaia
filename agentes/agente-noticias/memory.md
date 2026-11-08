@@ -24,5 +24,7 @@
 
 *   Nomes: vereador Amaraí Gomes = "Pezão" (União Brasil). O PDF da Câmara pode trazer nomes com erro de leitura; conferir nos portais.
 
+*   2026-11-08: Novos perfis apareceram no Windsor.ai: @poder360 (nacional, ignorar quase tudo) e @brunozambelli.sp (político). A resposta do Windsor pode passar do limite; salvar e resumir com python.
+
 ### Regra de Auto-Atualização:
 Quando eu te corrigir ou você aprender algo novo (nova fonte, fonte que caiu, preferência de formato), atualize este arquivo.
