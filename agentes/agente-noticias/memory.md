@@ -26,5 +26,8 @@
 
 *   2026-11-08: Novos perfis apareceram no Windsor.ai: @poder360 (nacional, ignorar quase tudo) e @brunozambelli.sp (político). A resposta do Windsor pode passar do limite; salvar e resumir com python.
 
+*   Prefeito de Mogi Guaçu: Rodrigo Falsetti (PSD) — perfil @rodrigofalsetti_.
+*   Se uma edição for perdida (sessão reiniciou), a próxima cobre o período inteiro e avisa no rodapé.
+
 ### Regra de Auto-Atualização:
 Quando eu te corrigir ou você aprender algo novo (nova fonte, fonte que caiu, preferência de formato), atualize este arquivo.
