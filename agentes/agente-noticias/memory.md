@@ -29,5 +29,7 @@
 *   Prefeito de Mogi Guaçu: Rodrigo Falsetti (PSD) — perfil @rodrigofalsetti_.
 *   Se uma edição for perdida (sessão reiniciou), a próxima cobre o período inteiro e avisa no rodapé.
 
+*   2026-11-14: No Windsor, NÃO usar date_from/date_to = dia de hoje (volta 0 linhas). Usar date_preset "last_3dT" + filtro media_timestamp. Por isso a edição de 14/11 10h52 saiu vazia por engano.
+
 ### Regra de Auto-Atualização:
 Quando eu te corrigir ou você aprender algo novo (nova fonte, fonte que caiu, preferência de formato), atualize este arquivo.
