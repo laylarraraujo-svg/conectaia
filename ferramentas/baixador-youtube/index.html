@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Baixador de Trechos</title>
+<style>
+  :root { --bg:#0f1115; --card:#181b22; --line:#2a2f3a; --txt:#e8eaf0; --mut:#8b93a5; --acc:#6c8cff; --ok:#3ecf8e; --err:#ff6b6b; }
+  @media (prefers-color-scheme: light) { :root { --bg:#f4f5f8; --card:#fff; --line:#dde0e8; --txt:#1a1d24; --mut:#6a7183; } }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--bg); color:var(--txt); font:16px/1.5 system-ui,sans-serif; }
+  main { max-width:720px; margin:0 auto; padding:24px 16px 48px; }
+  h1 { font-size:1.4rem; margin:0 0 16px }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:16px }
+  .row { display:flex; gap:8px; flex-wrap:wrap; align-items:center }
+  input[type=text], select { flex:1; min-width:0; padding:10px 12px; border-radius:8px; border:1px solid var(--line); background:var(--bg); color:var(--txt); font:inherit }
+  button { padding:10px 16px; border:0; border-radius:8px; background:var(--acc); color:#fff; font:inherit; font-weight:600; cursor:pointer }
+  button.sec { background:transparent; border:1px solid var(--line); color:var(--txt); font-weight:500; padding:6px 10px; font-size:.85rem }
+  button:disabled { opacity:.5; cursor:default }
+  #player { width:100%; aspect-ratio:16/9; border-radius:8px; overflow:hidden; background:#000 }
+  .title { font-weight:600; margin:12px 0 2px } .mut { color:var(--mut); font-size:.9rem }
+  .range { position:relative; height:36px; margin:16px 4px 4px }
+  .track { position:absolute; top:16px; left:0; right:0; height:6px; background:var(--line); border-radius:3px }
+  .sel { position:absolute; top:16px; height:6px; background:var(--acc); border-radius:3px }
+  .range input[type=range] { position:absolute; left:0; width:100%; top:6px; margin:0; background:none; pointer-events:none; -webkit-appearance:none; appearance:none; height:26px }
+  .range input[type=range]::-webkit-slider-thumb { -webkit-appearance:none; pointer-events:auto; width:20px; height:26px; border-radius:6px; background:#fff; border:2px solid var(--acc); cursor:ew-resize }
+  .range input[type=range]::-moz-range-thumb { pointer-events:auto; width:16px; height:22px; border-radius:6px; background:#fff; border:2px solid var(--acc); cursor:ew-resize }
+  .range input[type=range]::-webkit-slider-runnable-track, .range input[type=range]::-moz-range-track { background:transparent }
+  .times { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px }
+  .times label { font-size:.85rem; color:var(--mut); display:block; margin-bottom:4px }
+  .times .row input { text-align:center; font-variant-numeric:tabular-nums }
+  .bar { height:8px; background:var(--line); border-radius:4px; overflow:hidden; margin-top:12px }
+  .bar > div { height:100%; width:0; background:var(--ok); transition:width .3s }
+  .hide { display:none } .err { color:var(--err) } a.dl { color:var(--ok); font-weight:600 }
+</style>
+</head>
+<body>
+<main>
+  <h1>✂️ Baixador de Trechos do YouTube</h1>
+
+  <div class="card">
+    <div class="row">
+      <input id="url" type="text" placeholder="Cole o link do vídeo do YouTube…" autofocus>
+      <button id="load">Carregar</button>
+    </div>
+    <div id="msg" class="mut" style="margin-top:8px"></div>
+  </div>
+
+  <div id="editor" class="card hide">
+    <div id="player"></div>
+    <div class="title" id="title"></div>
+    <div class="mut" id="meta"></div>
+
+    <div class="range">
+      <div class="track"></div><div class="sel" id="sel"></div>
+      <input type="range" id="rs" min="0" value="0" step="1">
+      <input type="range" id="re" min="0" value="0" step="1">
+    </div>
+
+    <div class="times">
+      <div>
+        <label>Início (h:mm:ss)</label>
+        <div class="row"><input id="ts" type="text"><button class="sec" id="setS" title="Usar o ponto atual do player">📍 atual</button></div>
+      </div>
+      <div>
+        <label>Fim (h:mm:ss)</label>
+        <div class="row"><input id="te" type="text"><button class="sec" id="setE" title="Usar o ponto atual do player">📍 atual</button></div>
+      </div>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <button class="sec" id="prev">▶ Ver só o trecho</button>
+      <span class="mut" id="dur"></span>
+    </div>
+  </div>
+
+  <div id="opts" class="card hide">
+    <div class="row">
+      <select id="kind"><option value="video">Vídeo (MP4)</option><option value="audio">Só áudio (MP3)</option></select>
+      <select id="quality">
+        <option value="best">Melhor qualidade</option><option value="1080">até 1080p</option>
+        <option value="720">até 720p</option><option value="480">até 480p</option><option value="360">até 360p</option>
+      </select>
+      <button id="go">⬇ Baixar trecho</button>
+    </div>
+    <div class="bar hide" id="bar"><div id="fill"></div></div>
+    <div id="status" class="mut" style="margin-top:8px"></div>
+  </div>
+</main>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+const $ = id => document.getElementById(id);
+let info = null, player = null, url = '', timer = null, stopAt = null;
+
+const fmt = s => { s = Math.round(s); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60;
+  return `${h}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`; };
+const parse = t => { const p = t.trim().split(':').map(Number); if (p.some(isNaN)) return NaN;
+  return p.reduce((a, v) => a*60 + v, 0); };
+
+function syncUI(from) {
+  let s = +$('rs').value, e = +$('re').value;
+  if (from === 'rs' && s >= e) { s = e - 1; $('rs').value = s; }
+  if (from === 're' && e <= s) { e = s + 1; $('re').value = e; }
+  const max = +$('rs').max || 1;
+  $('sel').style.left = (s/max*100) + '%'; $('sel').style.width = ((e-s)/max*100) + '%';
+  $('ts').value = fmt(s); $('te').value = fmt(e); $('dur').textContent = `Duração do trecho: ${fmt(e-s)}`;
+}
+$('rs').oninput = () => { syncUI('rs'); player && player.seekTo(+$('rs').value, true); player && player.pauseVideo(); };
+$('re').oninput = () => { syncUI('re'); player && player.seekTo(Math.max(0, +$('re').value - 3), true); player && player.pauseVideo(); };
+function fromText(which) {
+  const v = parse($(which === 'rs' ? 'ts' : 'te').value);
+  if (!isNaN(v)) $(which).value = Math.min(Math.max(0, v), info.duration);
+  syncUI(which);
+}
+$('ts').onchange = () => fromText('rs'); $('te').onchange = () => fromText('re');
+$('setS').onclick = () => { if (!player) return; $('rs').value = Math.floor(player.getCurrentTime()); syncUI('rs'); };
+$('setE').onclick = () => { if (!player) return; $('re').value = Math.ceil(player.getCurrentTime()); syncUI('re'); };
+
+$('prev').onclick = () => {
+  if (!player) return;
+  stopAt = +$('re').value; player.seekTo(+$('rs').value, true); player.playVideo();
+  clearInterval(timer);
+  timer = setInterval(() => { if (stopAt !== null && player.getCurrentTime() >= stopAt) { player.pauseVideo(); stopAt = null; clearInterval(timer); } }, 200);
+};
+
+$('load').onclick = async () => {
+  url = $('url').value.trim(); $('msg').className = 'mut'; $('msg').textContent = 'Carregando…';
+  const r = await fetch('/api/info?url=' + encodeURIComponent(url)); const d = await r.json();
+  if (d.error) { $('msg').className = 'err'; $('msg').textContent = d.error; return; }
+  info = d; $('msg').textContent = '';
+  $('title').textContent = d.title; $('meta').textContent = `${d.channel} · duração ${fmt(d.duration)}`;
+  $('rs').max = $('re').max = d.duration; $('rs').value = 0; $('re').value = Math.min(d.duration, 60);
+  syncUI(); $('editor').classList.remove('hide'); $('opts').classList.remove('hide');
+  if (player) player.destroy();
+  const mk = () => player = new YT.Player('player', { videoId: d.id, width: '100%', height: '100%', playerVars: { rel: 0 } });
+  window.YT && YT.Player ? mk() : window.onYouTubeIframeAPIReady = mk;
+};
+$('url').onkeydown = e => { if (e.key === 'Enter') $('load').click(); };
+$('kind').onchange = () => $('quality').disabled = $('kind').value === 'audio';
+
+$('go').onclick = async () => {
+  $('go').disabled = true; $('bar').classList.remove('hide'); $('fill').style.width = '0'; $('status').className = 'mut'; $('status').textContent = 'Iniciando…';
+  const r = await fetch('/api/download', { method: 'POST', body: JSON.stringify({
+    url, start: +$('rs').value, end: +$('re').value, kind: $('kind').value, quality: $('quality').value }) });
+  const d = await r.json();
+  if (d.error) { $('status').className = 'err'; $('status').textContent = d.error; $('go').disabled = false; return; }
+  const poll = setInterval(async () => {
+    const s = await (await fetch('/api/status?id=' + d.id)).json();
+    $('fill').style.width = (s.progress || 0) + '%';
+    if (s.status === 'running') { $('status').textContent = `Baixando… ${Math.round(s.progress || 0)}%`; return; }
+    clearInterval(poll); $('go').disabled = false;
+    if (s.status === 'done') {
+      $('status').className = ''; $('status').innerHTML = `✅ Pronto! <a class="dl" href="/files/${encodeURI(s.file)}" download>Salvar ${s.name}</a>`;
+    } else { $('status').className = 'err'; $('status').textContent = 'Erro: ' + s.error; }
+  }, 800);
+};
+</script>
+</body>
+</html>
