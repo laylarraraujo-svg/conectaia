@@ -33,5 +33,7 @@
 
 *   2026-11-15: O Windsor (plano de teste) pode atrasar um dia inteiro (domingo veio vazio e chegou só na manhã seguinte). Sempre puxar a partir do último post já coberto, não só da janela da edição.
 
+*   2026-11-16: Caso Paraná encerrado: o corpo achado no Rio Mogi Guaçu (Jd. Serra Dourada, 15/11) é de José Rosa, o "Paraná".
+
 ### Regra de Auto-Atualização:
 Quando eu te corrigir ou você aprender algo novo (nova fonte, fonte que caiu, preferência de formato), atualize este arquivo.
