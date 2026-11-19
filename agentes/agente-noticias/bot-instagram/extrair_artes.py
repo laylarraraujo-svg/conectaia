@@ -22,6 +22,17 @@ window.renderizar = async (n) => {
   $("#fChapeu").value = n.chapeu || ""; $("#fDest").value = n.destaque || ""; $("#fUrg").checked = !!n.urgente;
   state.current = { id: n.id || n.manchete, categoria: n.categoria || "", titulo: n.manchete || "" };
   state.photo = null;
+  if (n.foto) {
+    // recorta só a parte de cima da imagem de origem (onde fica a foto, sem a arte/logo do portal)
+    const img = new Image(); img.src = n.foto;
+    await new Promise(r => { img.onload = r; img.onerror = r; });
+    if (img.naturalWidth) {
+      const keep = n.foto_recorte || 0.6, c = document.createElement("canvas");
+      c.width = img.naturalWidth; c.height = Math.round(img.naturalHeight * keep);
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height, 0, 0, c.width, c.height);
+      state.photo = c; state.photoPos = n.foto_pos ?? 30;
+    }
+  }
   await document.fonts.ready;
   for (const f of ['800 60px "Barlow Condensed"','500 30px "Barlow"','800 30px "Barlow"','700 28px "Chakra Petch"','600 24px "Barlow"','700 30px "Chakra Petch"','700 26px "Chakra Petch"']) { try { await document.fonts.load(f); } catch(e){} }
   if (!LOGO.complete) await new Promise(r => { LOGO.onload = r; LOGO.onerror = r; });
