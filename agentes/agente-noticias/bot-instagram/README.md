@@ -14,8 +14,12 @@ Publica cada notícia de Mogi Guaçu das edições (6h52, 10h52, 15h52) como **u
      - política de Mogi Guaçu: Prefeitura, prefeito, secretários, Câmara, vereadores, partidos, denúncias contra gestores;
      - urgente: ocorrência em andamento, morte, crime grave recente ou alerta da Defesa Civil.
    - **Publica direto** nos demais casos: obras, serviços, trânsito comum, saúde, empregos, eventos, clima.
-3. Gera o card com `python3 bot-instagram/gerar_card.py <saida.jpg> <CATEGORIA> <título> <resumo> <fonte> <dd/mm/aaaa>`.
-   - Salva em `posts/AAAA-MM-DD/<edicao>-<n>.jpg`, faz commit e push no branch `claude/vibrant-sagan-064z2o`.
+3. Gera as artes no **mesmo visual dos dashboards** (DASH NOTÍCIA – MOGI GUAÇU ALERTA e DASH NOTÍCIA – DIREITA ONLINE):
+   - `render-alerta.html` e `render-direita.html` usam o código de desenho copiado dos dashboards (logo, cores, cenas por tema).
+   - Monte um JSON com `arquivo`, `manchete`, `linha_fina`, `chapeu`, `destaque`, `urgente`, `categoria` e rode `node bot-instagram/renderizar.js <noticias.json> posts/AAAA-MM-DD/`.
+   - Sai um JPEG por conta: `<arquivo>-alerta.jpg` (para @mogiguacualerta) e `<arquivo>-direita.jpg` (para @direitaonlinemogiguacu).
+   - Se os dashboards mudarem o visual, leia os artifacts de novo e rode `python3 -I bot-instagram/extrair_artes.py <html_alerta> <html_direita>`.
+   - Salva em `posts/AAAA-MM-DD/`, faz commit e push no branch `claude/vibrant-sagan-064z2o`.
    - URL pública da imagem: `https://raw.githubusercontent.com/laylarraraujo-svg/conectaia/claude/vibrant-sagan-064z2o/agentes/agente-noticias/posts/AAAA-MM-DD/<arquivo>.jpg` (o repositório é público).
 4. Itens que **publicam direto**: `execute_action` connector `instagram`, action `create_image_post`, nas 2 contas, com `image_url`, `caption` e `alt_text`.
 5. Itens que **precisam de aprovação**: não publica. Lista no chat e no e-mail da edição, em uma seção "Aguardando sua aprovação para o Instagram", com o card e a legenda. Só publica quando a Layla responder no chat aprovando (ex.: "aprovo 1 e 3").
