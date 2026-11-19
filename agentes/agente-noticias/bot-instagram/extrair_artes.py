@@ -27,7 +27,7 @@ window.renderizar = async (n) => {
     const img = new Image(); img.src = n.foto;
     await new Promise(r => { img.onload = r; img.onerror = r; });
     if (img.naturalWidth) {
-      const keep = n.foto_recorte || 0.6, c = document.createElement("canvas");
+      const keep = n.foto_recorte || 1, c = document.createElement("canvas");
       c.width = img.naturalWidth; c.height = Math.round(img.naturalHeight * keep);
       c.getContext("2d").drawImage(img, 0, 0, c.width, c.height, 0, 0, c.width, c.height);
       state.photo = c; state.photoPos = n.foto_pos ?? 30;

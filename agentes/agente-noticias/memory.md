@@ -37,5 +37,7 @@
 
 *   2026-11-19: Layla pediu bot de postagem no Instagram: um post por notícia em @mogiguacualerta e @direitaonlinemogiguacu. Política de Mogi Guaçu ou urgente → só com aprovação dela. Regras em bot-instagram/README.md.
 
+*   2026-11-19: Bot Instagram: a Layla não gostou da foto tirada do post do portal. Agora eu preparo os posts (artes no padrão dos dashboards + legenda diferente por conta) e ela envia a foto de cada um; só publico depois da foto.
+
 ### Regra de Auto-Atualização:
 Quando eu te corrigir ou você aprender algo novo (nova fonte, fonte que caiu, preferência de formato), atualize este arquivo.

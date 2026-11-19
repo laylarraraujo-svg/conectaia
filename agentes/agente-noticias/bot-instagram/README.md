@@ -7,29 +7,25 @@ Publica cada notícia de Mogi Guaçu das edições (6h52, 10h52, 15h52) como **u
 - @direitaonlinemogiguacu — account id `17841411353795737`
 - NÃO postar em @posicionamentoparacorretores.
 
-## Fluxo por edição
-1. Monta a edição normalmente (skill `resumir-noticias-mogi-guacu`).
-2. Para cada notícia, classifica:
-   - **Precisa de aprovação** se for:
-     - política de Mogi Guaçu: Prefeitura, prefeito, secretários, Câmara, vereadores, partidos, denúncias contra gestores;
-     - urgente: ocorrência em andamento, morte, crime grave recente ou alerta da Defesa Civil.
-   - **Publica direto** nos demais casos: obras, serviços, trânsito comum, saúde, empregos, eventos, clima.
-3. Gera as artes no **mesmo visual dos dashboards** (DASH NOTÍCIA – MOGI GUAÇU ALERTA e DASH NOTÍCIA – DIREITA ONLINE):
-   - `render-alerta.html` e `render-direita.html` usam o código de desenho copiado dos dashboards (logo, cores, cenas por tema).
-   - Monte um JSON com `arquivo`, `manchete`, `linha_fina`, `chapeu`, `destaque`, `urgente`, `categoria` e rode `node bot-instagram/renderizar.js <noticias.json> posts/AAAA-MM-DD/`.
-   - Sai um JPEG por conta: `<arquivo>-alerta.jpg` (para @mogiguacualerta) e `<arquivo>-direita.jpg` (para @direitaonlinemogiguacu).
-   - Se os dashboards mudarem o visual, leia os artifacts de novo e rode `python3 -I bot-instagram/extrair_artes.py <html_alerta> <html_direita>`.
-   - Salva em `posts/AAAA-MM-DD/`, faz commit e push no branch `claude/vibrant-sagan-064z2o`.
-   - URL pública da imagem: `https://raw.githubusercontent.com/laylarraraujo-svg/conectaia/claude/vibrant-sagan-064z2o/agentes/agente-noticias/posts/AAAA-MM-DD/<arquivo>.jpg` (o repositório é público).
-4. Itens que **publicam direto**: `execute_action` connector `instagram`, action `create_image_post`: `<arquivo>-alerta.jpg` + legenda do Alerta na conta 17841457552030480, e `<arquivo>-direita.jpg` + legenda da Direita na conta 17841411353795737.
-5. Itens que **precisam de aprovação**: não publica. Lista no chat e no e-mail da edição, em uma seção "Aguardando sua aprovação para o Instagram", com o card e a legenda. Só publica quando a Layla responder no chat aprovando (ex.: "aprovo 1 e 3").
-6. Registra no arquivo da edição o que foi publicado (link/ID) e o que ficou aguardando.
+## Fluxo por edição (a Layla envia a foto de cada post)
+1. Monta a edição normalmente (skill `resumir-noticias-mogi-guacu`) e envia o e-mail.
+2. Para cada notícia, prepara o **rascunho do post**: manchete, chapéu, destaque, linha fina e legenda próprios de cada conta (ver "Textos diferentes por conta").
+3. Gera uma prévia da arte com a cena ilustrada do tema (`node bot-instagram/renderizar.js`) e manda no chat, numerada, em uma seção "Posts prontos — envie a foto de cada um". Marca quais são de política de Mogi Guaçu ou urgentes.
+4. **Espera a Layla enviar a foto** (ex.: "foto do post 2"). Quando chegar, gera a arte final com essa foto de fundo (`"foto": "<caminho>"`, sem recorte) e mostra no chat.
+5. Publica:
+   - post comum → publica assim que a arte com a foto dela estiver pronta;
+   - política de Mogi Guaçu ou urgente → só depois de ela aprovar a arte final no chat ("aprovo").
+6. Sem foto enviada, o post **não** é publicado. Rascunhos que ficarem sem foto até a edição seguinte são lembrados uma vez e depois descartados.
+7. Publicação: salva as artes em `posts/AAAA-MM-DD/`, faz commit e push, e usa `execute_action` (connector `instagram`, action `create_image_post`):
+   - `<arquivo>-alerta.jpg` + legenda do Alerta → conta 17841457552030480 (@mogiguacualerta);
+   - `<arquivo>-direita.jpg` + legenda da Direita → conta 17841411353795737 (@direitaonlinemogiguacu);
+   - URL pública: `https://raw.githubusercontent.com/laylarraraujo-svg/conectaia/claude/vibrant-sagan-064z2o/agentes/agente-noticias/posts/AAAA-MM-DD/<arquivo>.jpg`.
+8. Registra no arquivo da edição o que foi publicado e o que ficou esperando foto.
 
 ## Foto de fundo
-- Usa a foto real da notícia: `media_url` (ou `media_thumbnail_url` em vídeo) do post de origem, buscada no Windsor (`instagram_public`). Para matéria do site, a imagem principal da matéria.
-- Baixa a foto em pasta temporária e passa em `foto`. O robô recorta a parte de cima (`foto_recorte`, padrão 0.6) para tirar a logo e o texto do portal que ficam embaixo. Confira a arte e ajuste o recorte se ainda aparecer marca de outro perfil.
+- A foto é **enviada pela Layla** no chat. O robô usa a imagem inteira, sem recorte (`foto_recorte` só se ela pedir).
 - A arte leva o crédito "FOTO: REPRODUÇÃO", como nos dashboards.
-- Sem foto aproveitável, usa a cena ilustrada do tema.
+- A prévia sem foto usa a cena ilustrada do tema.
 
 ## Textos diferentes por conta
 Cada conta tem manchete, destaque, linha fina e legenda próprios, seguindo a linha editorial do dashboard dela:
