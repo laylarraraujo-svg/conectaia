@@ -25,6 +25,7 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{min-height:100%}
 body{background:var(--ink);color:var(--text);font-family:var(--body);font-size:15px;line-height:1.45;
   background-image:linear-gradient(rgba(142,151,171,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(142,151,171,.045) 1px,transparent 1px);
@@ -36,10 +37,16 @@ button,input,textarea{font:inherit;color:inherit}
 header.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:14px}
 .brand h1{margin:0;font-family:var(--display);font-size:22px;letter-spacing:.06em;text-transform:uppercase}
 .brand p{margin:3px 0 0;color:var(--muted);font-size:13px}
-.contas{display:flex;gap:8px;flex-wrap:wrap}
-.conta{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:999px;padding:6px 12px 6px 6px;font-size:13px;color:var(--muted);background:var(--panel)}
-.conta img{width:26px;height:26px;border-radius:50%;object-fit:cover;background:#000}
-.conta b{color:var(--text);font-weight:600}
+.marcas{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.marca{display:flex;align-items:center;gap:12px;border:2px solid var(--line);border-radius:14px;padding:10px 14px;background:var(--panel);cursor:pointer;text-align:left;color:var(--muted);transition:border-color .15s,background .15s}
+.marca img{width:46px;height:46px;border-radius:10px;object-fit:contain;background:#000;flex:none}
+.marca b{display:block;color:var(--text);font-family:var(--display);font-size:15px;letter-spacing:.04em}
+.marca small{font-size:12px}
+.marca:hover{border-color:var(--line2)}
+.marca[data-m="alerta"][aria-pressed="true"]{border-color:var(--laranja);background:rgba(255,106,0,.10)}
+.marca[data-m="direita"][aria-pressed="true"]{border-color:var(--amarelo);background:rgba(255,210,26,.08)}
+body[data-marca="alerta"]{--marca:var(--laranja)}
+body[data-marca="direita"]{--marca:var(--amarelo)}
 
 .stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
@@ -55,10 +62,10 @@ header.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items
 .chip[aria-pressed="true"]{background:var(--text);color:var(--ink);border-color:var(--text)}
 .chip .n{opacity:.7;font-variant-numeric:tabular-nums}
 
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;text-align:left;padding:0;transition:border-color .15s,transform .15s}
 .card:hover{border-color:var(--line2);transform:translateY(-1px)}
-.thumbs{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:#000}
+.thumbs{background:#000}
 .thumbs canvas{width:100%;height:auto;display:block;aspect-ratio:4/5}
 .cbody{padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px;min-width:0}
 .meta{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12px;color:var(--muted)}
@@ -84,7 +91,8 @@ header.top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items
 .ed-body{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr)}
 .ed-prev{background:#05070B;padding:16px;display:flex;flex-direction:column;gap:12px;border-right:1px solid var(--line)}
 .ed-prev.drop{outline:3px dashed var(--accent);outline-offset:-8px}
-.artes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.artes{display:flex;justify-content:center}
+.arte{width:min(460px,100%)}
 .arte{display:flex;flex-direction:column;gap:6px;min-width:0}
 .arte canvas{width:100%;height:auto;border-radius:8px;box-shadow:0 14px 40px rgba(0,0,0,.55);background:#000}
 .arte label{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px}
@@ -118,7 +126,8 @@ label.f{display:flex;flex-direction:column;gap:5px;font-family:var(--display);fo
 /* confirmação */
 .confirm{width:min(760px,100%);background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px;display:flex;flex-direction:column;gap:14px;margin-top:5vh}
 .confirm h2{margin:0;font-family:var(--display);font-size:15px;letter-spacing:.08em;text-transform:uppercase}
-.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.cgrid{display:grid;grid-template-columns:minmax(0,320px) minmax(0,1fr);gap:16px;align-items:start}
+.cgrid pre{margin:0;white-space:pre-wrap;font-family:var(--body);font-size:13px;background:#0B0E15;border:1px solid var(--line);border-radius:10px;padding:10px;max-height:380px;overflow:auto}
 .cgrid figure{margin:0;display:flex;flex-direction:column;gap:6px;min-width:0}
 .cgrid img{width:100%;border-radius:8px}
 .cgrid figcaption{font-size:13px;color:var(--muted)}
@@ -127,7 +136,7 @@ label.f{display:flex;flex-direction:column;gap:5px;font-family:var(--display);fo
 .toast{position:fixed;bottom:max(20px,env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:#1A2030;border:1px solid var(--line2);padding:10px 16px;border-radius:10px;font-size:14px;z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.show{opacity:1}
 @media (max-width:960px){.ed-body{grid-template-columns:1fr}.ed-prev{border-right:0;border-bottom:1px solid var(--line)}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:520px){.artes,.cgrid{grid-template-columns:1fr}.row2{grid-template-columns:1fr}}
+@media (max-width:620px){.cgrid,.marcas{grid-template-columns:1fr}.row2{grid-template-columns:1fr}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 
@@ -137,11 +146,12 @@ label.f{display:flex;flex-direction:column;gap:5px;font-family:var(--display);fo
       <h1>Robô de Postagem</h1>
       <p id="statusTxt">Conectando…</p>
     </div>
-    <div class="contas">
-      <span class="conta"><img id="logoA" alt=""><b>@mogiguacualerta</b></span>
-      <span class="conta"><img id="logoD" alt=""><b>@direitaonlinemogiguacu</b></span>
-    </div>
   </header>
+
+  <nav class="marcas" id="marcas" aria-label="Conta do Instagram">
+    <button class="marca" data-m="alerta" aria-pressed="true"><img id="logoA" alt=""><span><b>Mogi Guaçu Alerta</b><small>@mogiguacualerta</small></span></button>
+    <button class="marca" data-m="direita" aria-pressed="false"><img id="logoD" alt=""><span><b>Direita Online</b><small>@direitaonlinemogiguacu</small></span></button>
+  </nav>
 
   <section class="stats" aria-label="Resumo">
     <div class="stat warn"><span>Esperando foto</span><strong id="sFoto">0</strong></div>
@@ -171,22 +181,18 @@ label.f{display:flex;flex-direction:column;gap:5px;font-family:var(--display);fo
     <div class="ed-body">
       <div class="ed-prev" id="dropZone">
         <div class="artes">
-          <div class="arte"><label><span class="dot" style="background:var(--laranja)"></span>@mogiguacualerta</label><canvas id="cvA" width="1080" height="1350"></canvas></div>
-          <div class="arte"><label><span class="dot" style="background:var(--amarelo)"></span>@direitaonlinemogiguacu</label><canvas id="cvD" width="1080" height="1350"></canvas></div>
+          <div class="arte" id="arteA"><label><span class="dot" style="background:var(--laranja)"></span>@mogiguacualerta</label><canvas id="cvA" width="1080" height="1350"></canvas></div>
+          <div class="arte" id="arteD" hidden><label><span class="dot" style="background:var(--amarelo)"></span>@direitaonlinemogiguacu</label><canvas id="cvD" width="1080" height="1350"></canvas></div>
         </div>
         <div class="fotoBar">
           <label class="file" for="foto">Escolher foto<input id="foto" type="file" accept="image/*"></label>
           <label class="hint" for="pos">Posição da foto <input id="pos" type="range" min="0" max="100" value="40"></label>
           <button class="btn ghost" id="semFoto" type="button">Tirar foto</button>
         </div>
-        <p class="hint">Arraste uma imagem para cá, cole com Ctrl+V ou use "Escolher foto". A foto vale para as duas artes e fica só nesta janela até você publicar.</p>
+        <p class="hint">Arraste uma imagem para cá, cole com Ctrl+V ou use "Escolher foto". A foto fica só nesta janela até você publicar.</p>
       </div>
       <div class="ed-form">
         <div class="resumo" id="edResumo"></div>
-        <div class="acc-tabs" id="accTabs">
-          <button class="chip" data-acc="alerta" aria-pressed="true">Mogi Guaçu Alerta</button>
-          <button class="chip" data-acc="direita" aria-pressed="false">Direita Online</button>
-        </div>
         <div class="row2">
           <label class="f" for="fChapeu">Chapéu<input id="fChapeu" type="text" maxlength="28"></label>
           <label class="f" for="fDest">Destaque<input id="fDest" type="text" maxlength="50"></label>
@@ -197,7 +203,7 @@ label.f{display:flex;flex-direction:column;gap:5px;font-family:var(--display);fo
         <label class="toggle" for="fUrg"><input id="fUrg" type="checkbox"> Selo URGENTE na arte</label>
         <div class="note" id="edNote" hidden></div>
         <div class="actions">
-          <button class="btn pub" id="publicar" type="button">Publicar nas duas contas</button>
+          <button class="btn pub" id="publicar" type="button">Publicar</button>
           <button class="btn ghost" id="salvar" type="button">Salvar textos</button>
           <button class="btn ghost" id="descartar" type="button">Descartar</button>
         </div>
@@ -211,8 +217,8 @@ label.f{display:flex;flex-direction:column;gap:5px;font-family:var(--display);fo
     <h2 id="pubTitulo">Publicar no Instagram</h2>
     <div class="note" id="pubAviso" hidden></div>
     <div class="cgrid">
-      <figure><img id="pubA" alt="Arte do Mogi Guaçu Alerta"><figcaption><label for="chkA"><input id="chkA" type="checkbox" checked> @mogiguacualerta</label></figcaption></figure>
-      <figure><img id="pubD" alt="Arte do Direita Online"><figcaption><label for="chkD"><input id="chkD" type="checkbox" checked> @direitaonlinemogiguacu</label></figcaption></figure>
+      <figure><img id="pubImg" alt="Arte do post"><figcaption id="pubConta"></figcaption></figure>
+      <pre id="pubLeg"></pre>
     </div>
     <div class="prog" id="pubProg"></div>
     <div class="actions">
@@ -230,19 +236,35 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;" }[c]));
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2800); }
 
-const CONTAS = { alerta: { id:"17841457552030480", nome:"mogiguacualerta" }, direita: { id:"17841411353795737", nome:"direitaonlinemogiguacu" } };
+const CONTAS = {
+  alerta:  { id:"17841457552030480", nome:"mogiguacualerta", titulo:"Mogi Guaçu Alerta" },
+  direita: { id:"17841411353795737", nome:"direitaonlinemogiguacu", titulo:"Direita Online" }
+};
 const WINDSOR_NOMES = ["Windsor.ai", "Windsor ai"];
 const EDICOES = { manha:"Manhã", "meio-da-manha":"Meio da manhã", tarde:"Tarde" };
 const CAMPOS = ["chapeu","destaque","manchete","linha_fina","legenda"];
 const IDS = { chapeu:"#fChapeu", destaque:"#fDest", manchete:"#fMan", linha_fina:"#fFina", legenda:"#fLeg" };
 
 let db = null, mcp = null, windsorNome = null;
-const st = { posts: [], tab: "foto", atual: null, conta: "alerta", rasc: null, photo: null, photoPos: 40 };
+let marcaSalva = "alerta"; try { marcaSalva = localStorage.getItem("robo-marca") || "alerta"; } catch {}
+const st = { posts: [], tab: "foto", marca: CONTAS[marcaSalva] ? marcaSalva : "alerta", atual: null, rasc: null, photo: null, photoPos: 40 };
 
 const A = marcaAlerta($("#cvA")), D = marcaDireita($("#cvD"));
 const MARCAS = { alerta: A, direita: D };
+const CANVAS = { alerta: $("#cvA"), direita: $("#cvD") };
 const carregarLogo = (img, el) => { const set = () => { el.src = img.src; }; if (img.complete) set(); else img.addEventListener("load", set); };
 carregarLogo(A.logo, $("#logoA")); carregarLogo(D.logo, $("#logoD"));
+
+/* ---------- conta ativa ---------- */
+function trocarMarca(m){
+  st.marca = m; try { localStorage.setItem("robo-marca", m); } catch {}
+  document.body.dataset.marca = m;
+  document.querySelectorAll("#marcas .marca").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === m));
+  if (st.atual) fechar(); else render();
+}
+$("#marcas").addEventListener("click", e => { const b = e.target.closest("[data-m]"); if (b && b.dataset.m !== st.marca) trocarMarca(b.dataset.m); });
+document.body.dataset.marca = st.marca;
+document.querySelectorAll("#marcas .marca").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === st.marca));
 
 /* ---------- arte ---------- */
 function desenhar(marca, textos, urgente, photo, pos, id){
@@ -254,89 +276,78 @@ function desenhar(marca, textos, urgente, photo, pos, id){
   m.state.photo = photo || null; m.state.photoPos = pos;
   m.draw();
 }
-function desenharAtual(){
-  if (!st.rasc) return;
-  for (const k of ["alerta","direita"]) desenhar(k, st.rasc[k], st.rasc.urgente, st.photo, st.photoPos, st.atual.id);
-}
+function desenharAtual(){ if (st.rasc) desenhar(st.marca, st.rasc.textos, st.rasc.urgente, st.photo, st.photoPos, st.atual.id); }
 const fontesProntas = document.fonts ? document.fonts.ready : Promise.resolve();
 fontesProntas.then(() => { if (st.rasc) desenharAtual(); render(); });
 
 /* ---------- lista ---------- */
 const hoje = () => new Date().toLocaleDateString("sv-SE", { timeZone: "America/Sao_Paulo" });
-const etapa = p => p.status === "publicado" ? "publicado" : p.status === "descartado" ? "descartado" : "foto";
+const etapa = (p, m = st.marca) => p.descartado?.[m] ? "descartado" : p.publicado?.[m] ? "publicado" : "foto";
 function statusTag(p){
-  if (p.status === "publicado") return `<span class="tag st-pub">Publicado</span>`;
-  if (p.status === "descartado") return `<span class="tag st-desc">Descartado</span>`;
-  const pub = p.publicado || {};
-  if (pub.alerta || pub.direita) return `<span class="tag st-parcial">Publicado em 1 conta</span>`;
+  const e = etapa(p);
+  if (e === "publicado") return `<span class="tag st-pub">Publicado</span>`;
+  if (e === "descartado") return `<span class="tag st-desc">Descartado</span>`;
   return `<span class="tag st-foto">Esperando foto</span>`;
 }
 function flags(p){
   return (p.politica ? `<span class="tag pol">Política · aprovar</span>` : "") + (p.urgente ? `<span class="tag urg">Urgente · aprovar</span>` : "");
 }
 function render(){
-  const ps = st.posts;
+  const m = st.marca, ps = st.posts.filter(p => p[m]);
   const foto = ps.filter(p => etapa(p) === "foto"), pub = ps.filter(p => etapa(p) === "publicado"), desc = ps.filter(p => etapa(p) === "descartado");
   $("#sFoto").textContent = foto.length;
   $("#sPol").textContent = foto.filter(p => p.politica || p.urgente).length;
-  $("#sHoje").textContent = pub.filter(p => (p.publicado_em || "").slice(0,10) === hoje()).length;
+  $("#sHoje").textContent = pub.filter(p => (p.publicado?.[m]?.em || "").slice(0,10) === hoje()).length;
   $("#sPub").textContent = pub.length;
   $("#cFoto").textContent = foto.length; $("#cPub").textContent = pub.length; $("#cDesc").textContent = desc.length;
-  const lista = { foto, publicado: pub, descartado: desc }[st.tab];
-  const g = $("#grid");
   if (!db) return;
+  const lista = { foto, publicado: pub, descartado: desc }[st.tab];
+  const g = $("#grid"), nome = "@" + CONTAS[m].nome;
   if (!lista.length){
-    const msg = { foto: ["Nenhum post esperando foto", "Quando sair a próxima edição de notícias, os posts preparados aparecem aqui para você colocar a foto e publicar."],
-                  publicado: ["Nada publicado ainda", "Os posts que você publicar pelas duas contas ficam listados aqui."],
-                  descartado: ["Nenhum post descartado", "Posts que você descartar ficam aqui."] }[st.tab];
-    g.innerHTML = `<div class="empty"><strong>${msg[0]}</strong>${msg[1]}</div>`; return;
+    const msg = { foto: [`Nenhum post do ${nome} esperando foto`, "Quando sair a próxima edição de notícias, os posts preparados aparecem aqui para você colocar a foto e publicar."],
+                  publicado: [`Nada publicado no ${nome} ainda`, "Os posts que você publicar nesta conta ficam listados aqui."],
+                  descartado: ["Nenhum post descartado", "Posts que você descartar nesta conta ficam aqui."] }[st.tab];
+    g.innerHTML = `<div class="empty"><strong>${esc(msg[0])}</strong>${esc(msg[1])}</div>`; return;
   }
   g.innerHTML = lista.map(p => `
     <button class="card" data-id="${esc(p.id)}" aria-label="Abrir post ${esc(p.numero)}">
-      <div class="thumbs"><canvas width="1080" height="1350" data-m="alerta"></canvas><canvas width="1080" height="1350" data-m="direita"></canvas></div>
+      <div class="thumbs"><canvas width="1080" height="1350"></canvas></div>
       <div class="cbody">
         <div class="meta"><span class="tag">Post ${esc(p.numero)}</span><span>${esc(EDICOES[p.edicao] || p.edicao || "")} · ${esc(fmtData(p.data))}</span>${statusTag(p)}${flags(p)}</div>
-        <h3>${esc(p.alerta?.manchete || p.direita?.manchete || "Post sem manchete")}</h3>
+        <h3>${esc(p[m]?.manchete || "Post sem manchete")}</h3>
       </div>
     </button>`).join("");
-  // miniaturas: desenha no canvas grande da marca e copia
   g.querySelectorAll(".card").forEach(card => {
-    const p = lista.find(x => x.id === card.dataset.id);
-    card.querySelectorAll("canvas").forEach(c => {
-      const k = c.dataset.m; desenhar(k, p[k] || {}, p.urgente, null, 40, p.id);
-      c.getContext("2d").drawImage(MARCAS[k] === A ? $("#cvA") : $("#cvD"), 0, 0);
-    });
+    const p = lista.find(x => x.id === card.dataset.id), c = card.querySelector("canvas");
+    desenhar(m, p[m] || {}, p.urgente, null, 40, p.id);
+    c.getContext("2d").drawImage(CANVAS[m], 0, 0);
   });
   if (st.rasc) desenharAtual();
 }
-function fmtData(d){ if (!d) return ""; const [y,m,dd] = d.split("-"); return `${dd}/${m}/${y}`; }
+function fmtData(d){ if (!d) return ""; const [y,mm,dd] = d.split("-"); return `${dd}/${mm}/${y}`; }
 $("#tabs").addEventListener("click", e => { const b = e.target.closest("[data-tab]"); if (!b) return; st.tab = b.dataset.tab; document.querySelectorAll("#tabs .chip").forEach(c => c.setAttribute("aria-pressed", c === b)); render(); });
 $("#grid").addEventListener("click", e => { const c = e.target.closest(".card"); if (c) abrir(c.dataset.id); });
 
 /* ---------- editor ---------- */
 function abrir(id){
   const p = st.posts.find(x => x.id === id); if (!p) return;
+  const m = st.marca;
   st.atual = p;
-  st.rasc = { alerta: { ...(p.alerta || {}) }, direita: { ...(p.direita || {}) }, urgente: !!p.urgente };
+  st.rasc = { textos: { ...(p[m] || {}) }, urgente: !!p.urgente };
   st.photo = null; st.photoPos = 40; $("#pos").value = 40; $("#foto").value = "";
-  $("#edTitulo").textContent = `Post ${p.numero} · ${EDICOES[p.edicao] || p.edicao || ""} ${fmtData(p.data)}`;
+  $("#arteA").hidden = m !== "alerta"; $("#arteD").hidden = m !== "direita";
+  $("#edTitulo").textContent = `${CONTAS[m].titulo} · Post ${p.numero} · ${EDICOES[p.edicao] || p.edicao || ""} ${fmtData(p.data)}`;
   $("#edMeta").innerHTML = statusTag(p) + flags(p);
   const fontes = (p.fontes || []).map(f => f.link ? `<a href="${esc(f.link)}" target="_blank" rel="noopener">${esc(f.nome)}</a>` : esc(f.nome)).join(", ");
   $("#edResumo").innerHTML = `${esc(p.resumo || "")}${fontes ? `<br>Fontes: ${fontes}` : ""}`;
+  for (const f of CAMPOS) $(IDS[f]).value = st.rasc.textos[f] || "";
   $("#fUrg").checked = st.rasc.urgente;
-  trocarConta("alerta");
   atualizarBotao(); mostrarNota();
   $("#edOv").classList.add("open");
   desenharAtual();
 }
 function fechar(){ $("#edOv").classList.remove("open"); st.atual = null; st.rasc = null; st.photo = null; render(); }
-function trocarConta(k){
-  st.conta = k;
-  document.querySelectorAll("#accTabs .chip").forEach(c => c.setAttribute("aria-pressed", c.dataset.acc === k));
-  for (const f of CAMPOS) $(IDS[f]).value = st.rasc[k][f] || "";
-}
-$("#accTabs").addEventListener("click", e => { const b = e.target.closest("[data-acc]"); if (b) trocarConta(b.dataset.acc); });
-for (const f of CAMPOS) $(IDS[f]).addEventListener("input", () => { st.rasc[st.conta][f] = $(IDS[f]).value; if (f !== "legenda") desenharAtual(); });
+for (const f of CAMPOS) $(IDS[f]).addEventListener("input", () => { if (!st.rasc) return; st.rasc.textos[f] = $(IDS[f]).value; if (f !== "legenda") desenharAtual(); });
 $("#fUrg").addEventListener("change", () => { st.rasc.urgente = $("#fUrg").checked; desenharAtual(); });
 $("#pos").addEventListener("input", () => { st.photoPos = +$("#pos").value; desenharAtual(); });
 $("#fechar").addEventListener("click", fechar);
@@ -344,15 +355,17 @@ document.addEventListener("keydown", e => { if (e.key !== "Escape") return; if (
 
 function precisaAprovar(p){ return !!(p && (p.politica || p.urgente)); }
 function atualizarBotao(){
-  const b = $("#publicar");
-  b.textContent = precisaAprovar(st.atual) ? "Aprovar e publicar" : "Publicar nas duas contas";
-  b.disabled = !st.photo;
+  const b = $("#publicar"), p = st.atual, nome = "@" + CONTAS[st.marca].nome;
+  const feito = p && etapa(p) === "publicado";
+  b.textContent = feito ? `Já publicado no ${nome}` : (precisaAprovar(p) ? `Aprovar e publicar no ${nome}` : `Publicar no ${nome}`);
+  b.disabled = !st.photo || feito;
   b.title = st.photo ? "" : "Coloque a foto antes de publicar";
 }
 function mostrarNota(){
   const n = $("#edNote"), p = st.atual;
+  if (p && etapa(p) === "publicado"){ n.hidden = false; n.className = "note ok"; n.textContent = "Este post já foi publicado nesta conta."; return; }
   if (!st.photo){ n.hidden = false; n.className = "note"; n.textContent = "Coloque a foto deste post para liberar a publicação."; return; }
-  if (precisaAprovar(p)){ n.hidden = false; n.className = "note"; n.textContent = "Este post é de política de Mogi Guaçu ou urgente. Confira os textos das duas contas antes de aprovar."; return; }
+  if (precisaAprovar(p)){ n.hidden = false; n.className = "note"; n.textContent = "Este post é de política de Mogi Guaçu ou urgente. Confira o texto antes de aprovar."; return; }
   n.hidden = true;
 }
 
@@ -360,7 +373,7 @@ function mostrarNota(){
 function usarFoto(file){
   if (!file || !file.type || !file.type.startsWith("image/")) return toast("Isso não é uma imagem.");
   const img = new Image();
-  img.onload = () => { st.photo = img; desenharAtual(); atualizarBotao(); mostrarNota(); toast("Foto aplicada nas duas artes"); };
+  img.onload = () => { st.photo = img; desenharAtual(); atualizarBotao(); mostrarNota(); toast("Foto aplicada"); };
   img.onerror = () => toast("Não consegui abrir essa imagem.");
   img.src = URL.createObjectURL(file);
 }
@@ -380,7 +393,7 @@ document.addEventListener("paste", e => {
 async function salvarTextos(silencioso){
   if (!db || !st.atual) return false;
   try {
-    await db.doc("posts/" + st.atual.id).update({ alerta: st.rasc.alerta, direita: st.rasc.direita, urgente: st.rasc.urgente, editado_em: new Date().toISOString() });
+    await db.doc("posts/" + st.atual.id).update({ [st.marca]: st.rasc.textos, urgente: st.rasc.urgente, editado_em: new Date().toISOString() });
     if (!silencioso) toast("Textos salvos");
     return true;
   } catch (err){ toast("Não consegui salvar: " + (err.message || err.code)); return false; }
@@ -388,7 +401,7 @@ async function salvarTextos(silencioso){
 $("#salvar").addEventListener("click", () => salvarTextos(false));
 $("#descartar").addEventListener("click", async () => {
   if (!db || !st.atual) return;
-  try { await db.doc("posts/" + st.atual.id).update({ status: "descartado", descartado_em: new Date().toISOString() }); toast("Post descartado"); fechar(); }
+  try { await db.doc("posts/" + st.atual.id).update({ ["descartado." + st.marca]: new Date().toISOString() }); toast("Post descartado nesta conta"); fechar(); }
   catch (err){ toast("Não consegui descartar: " + (err.message || err.code)); }
 });
 
@@ -397,13 +410,13 @@ function abrirPub(){
   if (!st.photo) return;
   if (!mcp){ toast("Publicar só funciona com o painel aberto pelo claude.ai."); return; }
   desenharAtual();
-  $("#pubA").src = $("#cvA").toDataURL("image/jpeg", .6);
-  $("#pubD").src = $("#cvD").toDataURL("image/jpeg", .6);
-  const pub = st.atual.publicado || {};
-  $("#chkA").checked = !pub.alerta; $("#chkD").checked = !pub.direita;
-  $("#chkA").disabled = !!pub.alerta; $("#chkD").disabled = !!pub.direita;
+  $("#pubImg").src = CANVAS[st.marca].toDataURL("image/jpeg", .6);
+  $("#pubConta").textContent = "Vai para @" + CONTAS[st.marca].nome;
+  $("#pubLeg").textContent = st.rasc.textos.legenda || "(sem legenda)";
   const av = $("#pubAviso");
-  if (precisaAprovar(st.atual)){ av.hidden = false; av.className = "note"; av.textContent = "Post de política ou urgente: ao publicar, você está aprovando os dois textos."; } else av.hidden = true;
+  if (precisaAprovar(st.atual)){ av.hidden = false; av.className = "note"; av.textContent = "Post de política ou urgente: ao publicar, você está aprovando este texto."; }
+  else if (!(st.rasc.textos.legenda || "").trim()){ av.hidden = false; av.className = "note"; av.textContent = "Este post está sem legenda."; }
+  else av.hidden = true;
   $("#pubProg").innerHTML = ""; $("#pubOk").disabled = false; $("#pubOk").textContent = precisaAprovar(st.atual) ? "Aprovar e publicar" : "Publicar agora";
   $("#pubOv").classList.add("open");
 }
@@ -428,51 +441,38 @@ function msgErro(e){
   if (c === "not_in_manifest" || c === "approval_required") return "o painel precisa da sua permissão para usar o conector (menu Permissões do artifact)";
   return e?.message || c || "erro desconhecido";
 }
-async function publicarConta(k, linha){
-  const cv = k === "alerta" ? $("#cvA") : $("#cvD"), conta = CONTAS[k], p = st.atual;
+async function publicar(){
+  const p = st.atual, m = st.marca, conta = CONTAS[m]; if (!p) return;
+  const btn = $("#pubOk"), linha = $("#pubProg");
+  btn.disabled = true; btn.textContent = "Publicando…"; linha.style.color = "";
+  await salvarTextos(true);
   let etapaTxt = "preparar a imagem";
   try {
+    const cv = CANVAS[m];
     let q = .92, blob = await new Promise(r => cv.toBlob(r, "image/jpeg", q));
     while (blob.size > 650000 && q > .5){ q -= .1; blob = await new Promise(r => cv.toBlob(r, "image/jpeg", q)); }
     const b64 = await blobBase64(blob);
-    etapaTxt = "enviar a imagem para o Google Drive";
-    linha.textContent = `@${conta.nome}: enviando a imagem…`;
+    etapaTxt = "enviar a imagem para o Google Drive"; linha.textContent = "Enviando a imagem…";
     const f = await mcp.callTool("Google Drive", "create_file", { title: `${conta.nome}-${p.id}.jpg`, base64Content: b64, contentMimeType: "image/jpeg", disableConversionToGoogleType: true }, { cache: false });
     const fileId = f.payload?.id; if (!fileId) throw { message: "o Drive não devolveu o arquivo" };
     etapaTxt = "deixar a imagem pública no Drive";
     await mcp.callTool("Google Drive", "share_file", { fileId, permissionId: "anyoneWithLink", role: "reader" }, { cache: false });
     const image_url = `https://lh3.googleusercontent.com/d/${fileId}`;
-    etapaTxt = "publicar no Instagram";
-    linha.textContent = `@${conta.nome}: publicando…`;
-    const r = await windsorCall("execute_action", { connector: "instagram", action: "create_image_post", account: conta.id, params: { image_url, caption: (st.rasc[k].legenda || "").slice(0, 2200) } });
-    const reg = { em: new Date().toISOString(), imagem: image_url, resposta: r ?? null };
-    await db.doc("posts/" + p.id).update({ ["publicado." + k]: reg }).catch(() => {});
-    p.publicado = { ...(p.publicado || {}), [k]: reg };
-    linha.textContent = `@${conta.nome}: publicado ✔`; linha.style.color = "var(--verde)";
-    return true;
+    etapaTxt = "publicar no Instagram"; linha.textContent = `Publicando no @${conta.nome}…`;
+    const r = await windsorCall("execute_action", { connector: "instagram", action: "create_image_post", account: conta.id, params: { image_url, caption: (st.rasc.textos.legenda || "").slice(0, 2200) } });
+    const reg = { em: new Date().toISOString(), imagem: image_url, resposta: r ?? null, aprovado: precisaAprovar(p) };
+    const outra = m === "alerta" ? "direita" : "alerta";
+    const upd = { ["publicado." + m]: reg };
+    if (p.publicado?.[outra] || !p[outra]) { upd.status = "publicado"; upd.publicado_em = reg.em; }
+    await db.doc("posts/" + p.id).update(upd).catch(() => {});
+    p.publicado = { ...(p.publicado || {}), [m]: reg };
+    linha.style.color = "var(--verde)"; linha.textContent = `Publicado no @${conta.nome} ✔`;
+    toast(`Publicado no @${conta.nome} ✔`);
+    setTimeout(() => { fecharPub(); fechar(); }, 1200);
   } catch (e){
     linha.style.color = "var(--alerta)";
-    linha.textContent = `@${conta.nome}: falhou ao ${etapaTxt} (${msgErro(e)}). ` + (etapaTxt === "publicar no Instagram" ? "Confira no Instagram se o post saiu antes de tentar de novo." : "Nada foi publicado nesta conta.");
-    return false;
-  }
-}
-async function publicar(){
-  const p = st.atual; if (!p) return;
-  const alvo = [$("#chkA").checked && !$("#chkA").disabled ? "alerta" : null, $("#chkD").checked && !$("#chkD").disabled ? "direita" : null].filter(Boolean);
-  if (!alvo.length){ toast("Marque pelo menos uma conta."); return; }
-  const btn = $("#pubOk"); btn.disabled = true; btn.textContent = "Publicando…";
-  await salvarTextos(true);
-  const prog = $("#pubProg"); prog.innerHTML = "";
-  let ok = 0;
-  for (const k of alvo){ const linha = document.createElement("div"); prog.appendChild(linha); if (await publicarConta(k, linha)) ok++; }
-  const pub = p.publicado || {};
-  if (pub.alerta && pub.direita){
-    await db.doc("posts/" + p.id).update({ status: "publicado", publicado_em: new Date().toISOString(), aprovado: precisaAprovar(p) }).catch(() => {});
-    toast("Publicado nas duas contas ✔");
-    setTimeout(() => { fecharPub(); fechar(); }, 1200);
-  } else {
-    btn.disabled = false; btn.textContent = "Tentar as que faltam";
-    if (ok) toast("Publicado em parte. Veja o que falhou.");
+    linha.textContent = `Falhou ao ${etapaTxt} (${msgErro(e)}). ` + (etapaTxt === "publicar no Instagram" ? "Confira no Instagram se o post saiu antes de tentar de novo." : "Nada foi publicado.");
+    btn.disabled = false; btn.textContent = "Tentar de novo";
   }
 }
 

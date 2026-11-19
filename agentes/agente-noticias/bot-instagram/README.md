@@ -11,7 +11,7 @@ Publica cada notícia de Mogi Guaçu das edições (6h52, 10h52, 15h52) como **u
 1. Monta a edição normalmente (skill `resumir-noticias-mogi-guacu`) e envia o e-mail.
 2. Para cada notícia, prepara o **rascunho do post**: manchete, chapéu, destaque, linha fina e legenda próprios de cada conta (ver "Textos diferentes por conta").
 3. Grava cada rascunho no **dash Robô de Postagem** (https://claude.ai/artifact/3MyUBS26t6kiAGLVEq5RtB) com `ArtifactData` (coleção `posts`, id `AAAA-MM-DD-<edicao>-<n>`; campos `numero, edicao, data, criado_em, status:"foto", politica, urgente, categoria, resumo, fontes[{nome,link}], alerta{chapeu,destaque,manchete,linha_fina,legenda}, direita{...}`). No chat e no e-mail, avisa quantos posts estão esperando foto e quais são de política ou urgentes.
-   - No dash a Layla coloca a foto (arrastar, colar ou escolher), ajusta os textos e publica nas duas contas. O dash envia a arte ao Google Drive, deixa pública e publica pelo Windsor.
+   - O dash é separado por conta: a Layla clica em **Mogi Guaçu Alerta** ou **Direita Online** e vê só os posts, a arte e a legenda daquela conta. Coloca a foto (arrastar, colar ou escolher), ajusta o texto e publica naquela conta. Cada conta tem seu próprio status (esperando foto, publicado, descartado) em `publicado.<conta>` e `descartado.<conta>`. O dash envia a arte ao Google Drive, deixa pública e publica pelo Windsor.
    - Se ela preferir mandar a foto no chat, sigo os passos 4 e 5 abaixo com `renderizar.js`.
 4. **Espera a Layla enviar a foto** (ex.: "foto do post 2"). Quando chegar, gera a arte final com essa foto de fundo (`"foto": "<caminho>"`, sem recorte) e mostra no chat.
 5. Publica:
