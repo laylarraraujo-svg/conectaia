@@ -37,3 +37,7 @@
 Se não houver nada novo relevante: "Nada novo relevante em Mogi Guaçu desde a última edição."
 
 **Pronto Quando:** o resumo foi entregue no chat, enviado por e-mail (ou a falha foi informada) e salvo em `edicoes/`.
+
+
+## Postagem no Instagram
+Depois de enviar o e-mail, siga `agentes/agente-noticias/bot-instagram/README.md`: um post por notícia em @mogiguacualerta e @direitaonlinemogiguacu. Política de Mogi Guaçu e casos urgentes só são publicados depois que a Layla aprovar no chat.

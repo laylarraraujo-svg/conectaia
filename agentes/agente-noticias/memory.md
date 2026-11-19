@@ -35,5 +35,7 @@
 
 *   2026-11-16: Caso Paraná encerrado: o corpo achado no Rio Mogi Guaçu (Jd. Serra Dourada, 15/11) é de José Rosa, o "Paraná".
 
+*   2026-11-19: Layla pediu bot de postagem no Instagram: um post por notícia em @mogiguacualerta e @direitaonlinemogiguacu. Política de Mogi Guaçu ou urgente → só com aprovação dela. Regras em bot-instagram/README.md.
+
 ### Regra de Auto-Atualização:
 Quando eu te corrigir ou você aprender algo novo (nova fonte, fonte que caiu, preferência de formato), atualize este arquivo.
